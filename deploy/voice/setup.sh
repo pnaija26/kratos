@@ -3,12 +3,12 @@ set -euo pipefail
 trap 'echo "VOICE_SETUP_ERROR: setup or service failed (line $LINENO)" >&2' ERR
 export DEBIAN_FRONTEND=noninteractive
 cd /voice
-if [ ! -f /usr/local/share/pithagoras-voice-deps ]; then
+if [ ! -f /usr/local/share/kratos-voice-deps ]; then
   echo 'VOICE_STAGE: Installing build tools'
   dpkg --configure -a
   apt-get update
   apt-get install -y --no-install-recommends git cmake ninja-build build-essential curl ca-certificates python3 libssl-dev aria2
-  touch /usr/local/share/pithagoras-voice-deps
+  touch /usr/local/share/kratos-voice-deps
 fi
 checkout() {
   local directory="$1" repository="$2" revision="$3"

@@ -4,14 +4,14 @@ layout: home
 hero:
   image:
     src: /logo.png
-    alt: Pithagoras
-  name: Pithagoras
+    alt: Kratos
+  name: Kratos
   text: A web portal for the pi coding agent
   tagline: Give it a task, close the browser, come back later and find it finished.
   actions:
     - theme: brand
-      text: What is Pithagoras
-      link: /guide/what-is-pithagoras
+      text: What is Kratos
+      link: /guide/what-is-kratos
     - theme: alt
       text: Deploy it
       link: /guide/deploying

@@ -1,0 +1,15 @@
+[Unit]
+Description=Kratos Breeze Q8 streaming speech
+After=network.target
+Conflicts=kratos-breeze.service
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/audio.cpp
+ExecStart=/opt/audio.cpp/build/linux-cuda-release/bin/audiocpp_server --config /opt/kratos/deploy/cortex-voice/audio-cpp.json
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=30
+
+[Install]
+WantedBy=multi-user.target

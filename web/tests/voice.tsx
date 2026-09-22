@@ -23,7 +23,7 @@ function Fixture() {
   const [aborted, setAborted] = useState(0);
   const [options, setOptions] = useState(false);
   const [selected, setSelected] = useState(0);
-  const session: Session = { id: 'test', title: 'A little room to think', workspace: '/workspaces/pithagoras', executor: 'host', status: running ? 'running' : 'idle', created_at: '', updated_at: '', last_error: null, pinned: false, provider: 'llama-server', model: 'Qwen3.6 35B', thinking_level: 'medium' };
+  const session: Session = { id: 'test', title: 'A little room to think', workspace: '/workspaces/kratos', executor: 'host', status: running ? 'running' : 'idle', created_at: '', updated_at: '', last_error: null, pinned: false, provider: 'llama-server', model: 'Qwen3.6 35B', thinking_level: 'medium' };
   return <>
     <main data-testid="workspace" style={{ maxWidth: 980, height: 'calc(100vh - 96px)', minHeight: 540, margin: '16px auto 0' }}>
       <Chat session={session} events={events} onClientCommand={() => {}} onAbort={async () => { setAborted(n => n + 1); setRunning(false); }} onSend={async (message, options) => {

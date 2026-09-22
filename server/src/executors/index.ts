@@ -100,7 +100,7 @@ export class ContainerExecutor implements Executor {
   ) {}
 
   async launch(opts: LaunchOptions): Promise<PiClient> {
-    const containerName = `pithagoras-${opts.sessionId}`;
+    const containerName = `kratos-${opts.sessionId}`;
     const sessionDir = path.join(this.sessionRoot, opts.sessionId);
 
     const passthrough = [
@@ -118,9 +118,9 @@ export class ContainerExecutor implements Executor {
       "--name",
       containerName,
       "--label",
-      "pithagoras.session=" + opts.sessionId,
+      "kratos.session=" + opts.sessionId,
       "--label",
-      "pithagoras.managed=true",
+      "kratos.managed=true",
       "-w",
       "/workspace",
       "-v",
@@ -153,7 +153,7 @@ export class ContainerExecutor implements Executor {
 
   async cleanup(sessionId: string): Promise<void> {
     await new Promise<void>((resolve) => {
-      const rm = spawn("docker", ["rm", "-f", `pithagoras-${sessionId}`], { stdio: "ignore" });
+      const rm = spawn("docker", ["rm", "-f", `kratos-${sessionId}`], { stdio: "ignore" });
       rm.on("exit", () => resolve());
       rm.on("error", () => resolve());
     });
@@ -163,7 +163,7 @@ export class ContainerExecutor implements Executor {
 export function buildExecutor(kind: ExecutorKind, sessionRoot: string): Executor {
   if (kind === "container") {
     return new ContainerExecutor(
-      process.env.PI_IMAGE || "pithagoras-runner:latest",
+      process.env.PI_IMAGE || "kratos-runner:latest",
       sessionRoot,
       {
         memoryMb: Number(process.env.TASK_MEMORY_MB) || 2048,

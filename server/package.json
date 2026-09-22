@@ -1,5 +1,5 @@
 {
-  "name": "@pithagoras/server",
+  "name": "@kratos/server",
   "private": true,
   "type": "module",
   "scripts": {

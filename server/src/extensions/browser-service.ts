@@ -15,9 +15,9 @@ import * as local from "./browser-local.js";
  */
 
 export const IMAGE = "lscr.io/linuxserver/chromium:latest";
-export const CONTAINER = "pithagoras-browser";
+export const CONTAINER = "kratos-browser";
 /** The name compose used, so an existing profile — and its logins — carries over. */
-export const VOLUME = process.env.BROWSER_VOLUME || "pithagoras_browser-profile";
+export const VOLUME = process.env.BROWSER_VOLUME || "kratos_browser-profile";
 
 export interface BrowserConfig {
   user: string;

@@ -22,15 +22,15 @@ an ordinary dependency in the same directory is never mistaken for a channel.
 
 ```json
 {
-  "name": "pithagoras-channel-my-thing",
+  "name": "kratos-channel-my-thing",
   "version": "0.1.0",
   "type": "module",
   "main": "index.js",
-  "pithagoras": { "channel": true }
+  "kratos": { "channel": true }
 }
 ```
 
-A name starting `pithagoras-channel-` also counts, but the explicit marker is
+A name starting `kratos-channel-` also counts, but the explicit marker is
 clearer.
 
 ### index.js

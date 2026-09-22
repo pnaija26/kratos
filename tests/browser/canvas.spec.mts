@@ -41,9 +41,9 @@ test('canvas streams on the stage, retains a partial draft and supports inline e
  await expect(page.getByText('Edited by you',{exact:false})).toBeVisible();
  const downloadEvent=page.waitForEvent('download');await page.getByLabel('Download canvas',{exact:true}).click();expect((await downloadEvent).suggestedFilename()).toBe('Human revision.md');
  await page.getByLabel('Store canvas',{exact:true}).click();await expect(page.getByLabel('Canvas stored',{exact:true})).toBeDisabled();
- await page.getByTestId('workspace').screenshot({path:'/tmp/pithagoras-canvas.png'});
+ await page.getByTestId('workspace').screenshot({path:'/tmp/kratos-canvas.png'});
  await page.setViewportSize({width:390,height:844});
- await page.getByTestId('workspace').screenshot({path:'/tmp/pithagoras-canvas-mobile.png'});
+ await page.getByTestId('workspace').screenshot({path:'/tmp/kratos-canvas-mobile.png'});
  const box=await page.getByLabel('Session canvas workspace').boundingBox();expect(box!.x).toBeGreaterThanOrEqual(0);expect(box!.x+box!.width).toBeLessThanOrEqual(390);
  await page.getByLabel('Delete canvas').click();await page.getByRole('button',{name:'Delete',exact:true}).click();
  await expect(page.getByText('A place for your documents')).toBeVisible();

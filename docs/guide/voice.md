@@ -25,10 +25,10 @@ suppression are requested from the browser; headphones work best when speaker
 audio is still picked up by your microphone.
 
 VAD runs locally in your browser. Its pinned model and WebAssembly runtime are
-served by Pithagoras, with no CDN dependency or extra Cortex GPU allocation.
+served by Kratos, with no CDN dependency or extra Cortex GPU allocation.
 Whisper receives rolling snapshots while you speak (roughly every two seconds),
 and a fresh snapshot after about 200 ms of silence. The voice screen shows the
-latest partial transcript. At turn end, Pithagoras reuses a result only when it
+latest partial transcript. At turn end, Kratos reuses a result only when it
 covers the last detected speech; otherwise it transcribes the final recording.
 This overlaps recognition with the silence window instead of starting all work
 after it. The current Whisper API remains clip-based, so this is speculative
@@ -69,7 +69,7 @@ is RTX 3060/Ampere (`86`), matching Cortex; use `FLASH_ATTN_CUDA_ARCHS=80`
 for A100 or `90` for Hopper. Match the build to your GPU
 and ensure the NVIDIA driver supports the upstream containers' CUDA versions.
 
-From the Pithagoras repository on that host:
+From the Kratos repository on that host:
 
 ```sh
 mkdir -p voice-runtime
@@ -216,16 +216,16 @@ Runtime references: [Breeze](https://github.com/breezeblue-ai/breeze-tts),
 ::: details Show alternative deployment details
 Cortex already has Breeze's source, Python environment and weights under
 `/root/breeze`. The units in `deploy/cortex-voice` reuse that installation.
-Whisper is built without CUDA under `/opt/pithagoras/voice-runtime/whisper.cpp`
+Whisper is built without CUDA under `/opt/kratos/voice-runtime/whisper.cpp`
 and uses the CPU, leaving the RTX 3060 available for Breeze. Both endpoints bind
 to loopback and use the same default URLs as the add-on.
 
 Install the unit files into `/etc/systemd/system`, reload systemd, and start
-`pithagoras-whisper`. Start `pithagoras-breeze` when sufficient GPU memory is
+`kratos-whisper`. Start `kratos-breeze` when sufficient GPU memory is
 available. On Cortex, the experimental `emotion-console` container is stopped
 and both voice units are enabled at boot. Breeze reserves roughly 8 GB of the
-GPU; use `systemctl stop pithagoras-breeze` to release its memory, or
-`systemctl disable --now pithagoras-breeze` before returning the GPU to another
+GPU; use `systemctl stop kratos-breeze` to release its memory, or
+`systemctl disable --now kratos-breeze` before returning the GPU to another
 service permanently. Do not run these units alongside the Compose voice services;
 they use the same ports.
 
@@ -239,7 +239,7 @@ synthetic microphone stream; they do not record from your physical microphone.
 Cortex uses audio.cpp at commit `efb04233dab73aeee4b2912042a90e7b36329061`,
 built for CUDA architecture 86 with the `breeze_tts` model. The Q8 package is
 `breeze_tts_2_q8_0`, installed under `/root/breeze/audio-cpp-models`.
-`pithagoras-audio-cpp.service` serves loopback port 7861; the Voice add-on uses
+`kratos-audio-cpp.service` serves loopback port 7861; the Voice add-on uses
 runtime `audio-cpp` and URL `http://127.0.0.1:7861/v1/audio/speech`.
 The Aria reference and transcript are sent inline and cached by the runtime.
 
@@ -255,7 +255,7 @@ The audio.cpp process used 4414 MiB VRAM. These are sample measurements, not
 latency guarantees for every input. A separate portal request produced 8 seconds
 of audio in 4.94 seconds, with first bytes at 0.99 seconds.
 
-Rollback: stop `pithagoras-audio-cpp`, start `pithagoras-breeze`, select runtime
+Rollback: stop `kratos-audio-cpp`, start `kratos-breeze`, select runtime
 `breeze`, and restore the speech URL to port 7860. Only one TTS unit should be
 enabled at boot. Qwen and Whisper do not need to restart.
 :::
@@ -279,8 +279,8 @@ prefill; subsequent turns can reuse it. No custom chat template is needed.
 ## Automatic setup from Settings
 
 On a Linux NVIDIA host with Docker and NVIDIA Container Toolkit, open
-**Settings → Add-ons → Voice → Install voice**. Pithagoras creates a separate
-`pithagoras-voice` container and displays the setup log. It builds pinned audio.cpp
+**Settings → Add-ons → Voice → Install voice**. Kratos creates a separate
+`kratos-voice` container and displays the setup log. It builds pinned audio.cpp
 and Whisper.cpp revisions, downloads the full-precision Breeze-TTS-2 GGUF package,
 quantizes that package locally to Q8_0, and downloads multilingual Whisper base.
 The GGUF source is the audio.cpp repack of BreezeBlue/Breeze-TTS-2. No Python TTS
@@ -290,7 +290,7 @@ Allow about 30 GB free disk space during setup. First installation can take seve
 minutes or longer depending on compilation and download speeds. Source downloads
 resume, completed models and builds are reused, and the quantized model is moved
 into place only after the converter inspects it successfully. The full-precision
-file is then removed. Models persist in `pithagoras_voice-models`.
+file is then removed. Models persist in `kratos_voice-models`.
 
 Once both health checks pass, Settings connects the installed services automatically.
 Existing voice choices and Aria reference files are preserved. A reference clone

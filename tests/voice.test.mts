@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import express from 'express';
 import { speechChunks, newSpeech } from '../web/src/voice.js';
-const dir = mkdtempSync(join(tmpdir(), 'pithagoras-voice-'));
+const dir = mkdtempSync(join(tmpdir(), 'kratos-voice-'));
 process.env.DATA_DIR = dir;
 const { voiceRouter, pcmWav, validateConfig } = await import('../server/src/api/voice.js');
 const { getDb } = await import('../server/src/db.js');

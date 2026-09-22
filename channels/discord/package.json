@@ -1,8 +1,8 @@
 {
-  "name": "pithagoras-channel-discord",
+  "name": "kratos-channel-discord",
   "version": "0.1.0",
   "description": "Reach the agent from Discord over the Gateway",
   "type": "module",
   "main": "index.js",
-  "pithagoras": { "channel": true }
+  "kratos": { "channel": true }
 }

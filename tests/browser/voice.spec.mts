@@ -21,14 +21,14 @@ test('real browser VAD submits turns, supports barge-in, and releases the mic', 
     : route.fulfill({ body: sample, contentType: 'audio/wav' }));
   await page.goto('/tests/voice.html');
   await page.getByRole('textbox', { name: 'Message' }).fill('Keep this draft');
-  await page.getByTestId('workspace').screenshot({ path: '/tmp/pithagoras-composer.png' });
+  await page.getByTestId('workspace').screenshot({ path: '/tmp/kratos-composer.png' });
   await page.getByRole('button', { name: 'Profile voice latency' }).click();
   await page.getByRole('button', { name: 'Turn on hands-free voice' }).click();
   await expect(page.getByRole('button', { name: 'End voice mode' })).toBeVisible({ timeout: 25000 });
   await expect(page.getByRole('status')).toContainText('Listening');
   await expect(page.getByRole('textbox', { name: 'Message' })).toBeHidden();
   await expect(page.getByText('We can work through it together.')).toBeHidden();
-  await page.getByTestId('workspace').screenshot({ path: '/tmp/pithagoras-voice-orb.png' });
+  await page.getByTestId('workspace').screenshot({ path: '/tmp/kratos-voice-orb.png' });
   await page.getByRole('button', { name: 'Inject speech' }).click();
   await expect(page.getByRole('status')).toContainText('Hearing you');
   await expect(page.getByTestId('sent')).toHaveText('1', { timeout: 12000 });
@@ -39,7 +39,7 @@ test('real browser VAD submits turns, supports barge-in, and releases the mic', 
   const timingDownload=page.waitForEvent('download');
   await page.getByRole('button',{name:'Download timing report'}).click();
   expect((await timingDownload).suggestedFilename()).toBe('voice-latency.json');
-  await page.getByLabel('Voice latency profiler').screenshot({path:'/tmp/pithagoras-voice-profile.png'});
+  await page.getByLabel('Voice latency profiler').screenshot({path:'/tmp/kratos-voice-profile.png'});
   await page.getByRole('button',{name:'Close voice profiler'}).click();
   await page.getByRole('button', { name: 'Inject speech' }).click();
   await expect(page.getByRole('status')).toContainText('Hearing you');
@@ -85,7 +85,7 @@ test('mute keeps playback and option prompts available; end restores the chat', 
   await expect(page.locator('.voice-orb')).toHaveAttribute('data-mode', 'input');
   await expect(page.getByTestId('sent')).toHaveText('1', { timeout: 12000 });
   await expect(page.locator('.voice-orb')).toHaveAttribute('data-mode', 'output');
-  await page.getByTestId('workspace').screenshot({ path: '/tmp/pithagoras-voice-output.png' });
+  await page.getByTestId('workspace').screenshot({ path: '/tmp/kratos-voice-output.png' });
   await page.getByRole('button', { name: 'Mute microphone', exact: true }).click();
   await page.getByRole('button', { name: 'Check mic tracks' }).click();
   await expect(page.getByTestId('tracks')).toHaveText('live:false');
@@ -111,10 +111,10 @@ test('composer and voice controls fit a phone viewport', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.route('**/api/voice', route => route.fulfill({ json: { enabled: true } }));
   await page.goto('/tests/voice.html');
-  await page.getByTestId('workspace').screenshot({ path: '/tmp/pithagoras-composer-mobile.png' });
+  await page.getByTestId('workspace').screenshot({ path: '/tmp/kratos-composer-mobile.png' });
   await page.getByRole('button', { name: 'Turn on hands-free voice' }).click();
   await expect(page.getByRole('status')).toHaveText('Listening', { timeout: 25000 });
-  await page.getByTestId('workspace').screenshot({ path: '/tmp/pithagoras-orb-mobile.png' });
+  await page.getByTestId('workspace').screenshot({ path: '/tmp/kratos-orb-mobile.png' });
   const end = await page.getByRole('button', { name: 'End voice mode' }).boundingBox();
   expect(end!.y + end!.height).toBeLessThan(844);
   const horizontalOverflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
@@ -218,14 +218,14 @@ test('voice panels animate into browser, terminal and simultaneous layouts', asy
   await page.goto('/tests/voice.html');
   await page.getByRole('button', { name: 'Turn on hands-free voice' }).click();
   await expect(page.getByRole('status')).toHaveText('Listening', { timeout: 25000 });
-  await page.getByTestId('workspace').screenshot({ path: '/tmp/pithagoras-voice-minimal.png' });
+  await page.getByTestId('workspace').screenshot({ path: '/tmp/kratos-voice-minimal.png' });
   await page.getByRole('button', { name: 'Mute sound effects' }).click();
   expect(await page.evaluate(() => localStorage.getItem('voiceSounds'))).toBe('off');
   await page.getByRole('button', { name: 'Use browser', exact: true }).click();
   await expect(page.getByRole('region', { name: 'Live browser', exact: true })).toBeVisible();
   await expect(page.locator('.voice-stage')).toHaveClass(/is-browsing/);
   await page.waitForTimeout(800);
-  await page.getByTestId('workspace').screenshot({ path: '/tmp/pithagoras-voice-browser.png' });
+  await page.getByTestId('workspace').screenshot({ path: '/tmp/kratos-voice-browser.png' });
   await page.getByRole('button', { name: 'Use terminal', exact: true }).click();
   await expect(page.getByRole('region', { name: 'Live terminal', exact: true })).toBeVisible();
   await expect(page.getByLabel('Agent terminal output')).toContainText('42 modules transformed');
@@ -235,7 +235,7 @@ test('voice panels animate into browser, terminal and simultaneous layouts', asy
   const terminal = await page.locator('.voice-terminal-window').boundingBox();
   expect(browser!.width).toBeGreaterThan(terminal!.width * 1.8);
   expect(browser!.x + browser!.width).toBeLessThan(terminal!.x);
-  await page.getByTestId('workspace').screenshot({ path: '/tmp/pithagoras-voice-both.png' });
+  await page.getByTestId('workspace').screenshot({ path: '/tmp/kratos-voice-both.png' });
   await page.evaluate(() => (window as any).canvasEvents.onmessage({data:JSON.stringify({type:'update',canvas:{id:'doc',title:'A shared draft',content:'# Live canvas\n\nWriting alongside the terminal.',revision:1,status:'writing',active_call:'draft',updated_at:''}})}));
   await expect(page.locator('.voice-stage')).toHaveAttribute('data-panels','2');
   await expect(page.locator('.voice-stage')).not.toHaveClass(/is-browsing/);
@@ -246,7 +246,7 @@ test('voice panels animate into browser, terminal and simultaneous layouts', asy
   expect(canvasBox!.width).toBeGreaterThan(terminalBox!.width);
   expect(terminalBox!.x+terminalBox!.width).toBeLessThan(canvasBox!.x);
   await expect(page.locator('.voice-presence')).toHaveCSS('height','80px');
-  await page.getByTestId('workspace').screenshot({path:'/tmp/pithagoras-voice-canvas-terminal.png'});
+  await page.getByTestId('workspace').screenshot({path:'/tmp/kratos-voice-canvas-terminal.png'});
   await page.getByLabel('Show browser').click();
   await page.waitForTimeout(800);
   const sideBrowser=await page.getByLabel('Live browser',{exact:true}).boundingBox();
@@ -254,7 +254,7 @@ test('voice panels animate into browser, terminal and simultaneous layouts', asy
   expect(sideBrowser!.x).toBeGreaterThanOrEqual(0);
   expect(sideCanvas!.x-sideBrowser!.x-sideBrowser!.width).toBeGreaterThan(0);
   expect(sideCanvas!.x-sideBrowser!.x-sideBrowser!.width).toBeLessThanOrEqual(20);
-  await page.getByTestId('workspace').screenshot({path:'/tmp/pithagoras-browser-canvas-fixed.png'});
+  await page.getByTestId('workspace').screenshot({path:'/tmp/kratos-browser-canvas-fixed.png'});
   await page.getByLabel('Minimize browser').click();
   await page.getByLabel('Show terminal').click();
   await page.getByLabel('Close canvas').click();
@@ -262,7 +262,7 @@ test('voice panels animate into browser, terminal and simultaneous layouts', asy
 
   await page.getByRole('button', { name: 'Minimize browser' }).click();
   await page.waitForTimeout(800);
-  await page.getByTestId('workspace').screenshot({ path: '/tmp/pithagoras-voice-terminal.png' });
+  await page.getByTestId('workspace').screenshot({ path: '/tmp/kratos-voice-terminal.png' });
   const orb = await page.locator('.voice-presence').boundingBox();
   const right = await page.locator('.voice-terminal-window').boundingBox();
   const stage = await page.locator(".voice-stage").boundingBox();
@@ -274,10 +274,10 @@ test('voice panels animate into browser, terminal and simultaneous layouts', asy
   await page.getByRole('button', { name: 'Stream thinking', exact: true }).click();
   await expect(page.getByLabel('Live model thinking')).toContainText('verify the page layout');
   await expect(page.locator('.voice-presence')).toHaveCSS('height', '80px');
-  await page.getByTestId('workspace').screenshot({ path: '/tmp/pithagoras-voice-thinking.png' });
+  await page.getByTestId('workspace').screenshot({ path: '/tmp/kratos-voice-thinking.png' });
   await page.setViewportSize({ width: 390, height: 844 });
   await page.waitForTimeout(800);
-  await page.getByTestId('workspace').screenshot({ path: '/tmp/pithagoras-voice-both-mobile.png' });
+  await page.getByTestId('workspace').screenshot({ path: '/tmp/kratos-voice-both-mobile.png' });
   const mobileBrowser = await page.locator('.voice-browser-window').boundingBox();
   const mobileTerminal = await page.locator('.voice-terminal-window').boundingBox();
   expect(mobileBrowser!.y + mobileBrowser!.height).toBeLessThan(mobileTerminal!.y);
@@ -329,7 +329,7 @@ test('prompt and compaction progress remain visible in chat and voice',async({pa
  await page.getByRole('button',{name:'Start compaction',exact:true}).click();
  const bar=page.locator('.voice-stage').getByRole('progressbar',{name:'Conversation compaction'});
  await expect(bar).toBeVisible();await expect(bar).not.toHaveAttribute('aria-valuenow');
- await page.getByTestId('workspace').screenshot({path:'/tmp/pithagoras-compaction-progress.png'});
+ await page.getByTestId('workspace').screenshot({path:'/tmp/kratos-compaction-progress.png'});
  await page.getByRole('button',{name:'End compaction',exact:true}).click();
  await expect(bar).toHaveCount(0);
  await page.getByRole('button',{name:'End voice mode'}).click();

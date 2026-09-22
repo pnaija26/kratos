@@ -1,14 +1,14 @@
-# Pithagoras: development context for future videos
+# Kratos: development context for future videos
 
 Recorded 11 September 2026. This is a production notebook, not a finished script or a claim that every experiment succeeded. It preserves the decisions and measurements from our incremental development conversation. Use the final-state section when describing what runs now; use the chronology when telling the story of how we got there.
 
 ## The project and the goal
 
-Pithagoras is a self-hosted interface for AI sessions, with tools, browser access, terminal work, and voice. The goal of this development stretch was to turn a text-first agent into a hands-free assistant that can listen, respond aloud, be interrupted, and show its work visually.
+Kratos is a self-hosted interface for AI sessions, with tools, browser access, terminal work, and voice. The goal of this development stretch was to turn a text-first agent into a hands-free assistant that can listen, respond aloud, be interrupted, and show its work visually.
 
 The constraint makes this useful video material: Qwen, speech generation, and eventually vision share one NVIDIA RTX 3060 with 12 GiB VRAM on the home-lab machine **Cortex**. The user explicitly authorized live updates to that home lab. This was iterative engineering on a working deployment, with several corrections driven by actual use.
 
-Local repository: `projects/pi-portal` inside the Claude workspace. Deployed checkout: `/opt/pithagoras` on Cortex. Portal: HTTPS port 4100. Remote model presets: `/root/models/models.ini`.
+Local repository: `projects/pi-portal` inside the Claude workspace. Deployed checkout: `/opt/kratos` on Cortex. Portal: HTTPS port 4100. Remote model presets: `/root/models/models.ini`.
 
 This notebook does not establish that the repository was pulled, committed, or pushed during every iteration. There are substantial local changes; deployment and Git publication are separate things.
 
@@ -20,7 +20,7 @@ The initial request was for a voice add-on, like the browser add-on, available t
 
 Decisions and implementation:
 
-- Run the speech services on the same Cortex host as Pithagoras.
+- Run the speech services on the same Cortex host as Kratos.
 - Keep Qwen and TTS running together rather than treating the GPU as dedicated to one experiment.
 - Use a mic icon in the composer instead of a textual “Voice” button.
 - Add hands-free microphone operation, automatic voice activity detection, end-of-turn handling, and barge-in.
@@ -109,7 +109,7 @@ Recorded measurements:
 
 These are measured examples, not universal latency guarantees. Text length, GPU contention, warm-up, and concurrent work affect performance. An Aria output WAV was transcribed with Whisper and matched the expected words.
 
-Current TTS service is `pithagoras-audio-cpp.service`, port 7861. The older `pithagoras-breeze.service`, port 7860, is stopped/disabled as a fallback. Whisper runs as `pithagoras-whisper.service`, port 8178, using multilingual base on CPU with four threads.
+Current TTS service is `kratos-audio-cpp.service`, port 7861. The older `kratos-breeze.service`, port 7860, is stopped/disabled as a fallback. Whisper runs as `kratos-whisper.service`, port 8178, using multilingual base on CPU with four threads.
 
 ### 6. Fix voice stalls and contention
 
@@ -307,7 +307,7 @@ These are candidate beats, not a finished script:
 
 Before recording, remeasure latency/VRAM on the current build, collect actual end-to-end footage, and verify the exact settings used. Avoid exposing credentials, private chat text, browser logins, or unrelated terminal content in captured footage.
 
-Temporary development screenshots were written to `/tmp/pithagoras-voice-*.png`; these are not durable assets. Capture or deliberately archive chosen footage before relying on it for editing.
+Temporary development screenshots were written to `/tmp/kratos-voice-*.png`; these are not durable assets. Capture or deliberately archive chosen footage before relying on it for editing.
 
 ## Follow-up: screenshot hallucination root cause
 
@@ -449,7 +449,7 @@ Q8 main/draft flags, MTP, one slot, batch 2048, ubatch 1024 and CPU MoE 39 remai
 This supersedes the 128K configuration above.
 
 Validation used the actual Aria reference, saved instruction, fast guidance and
-Pithagoras streaming options concurrently with a 4219-token prefill. Text completed
+Kratos streaming options concurrently with a 4219-token prefill. Text completed
 at 831 prompt tokens/sec and Aria returned 326400 PCM bytes. Observed total GPU
 usage was 10929 MiB, leaving 982 MiB free. This provides more headroom than 128K,
 but does not prove full-context or simultaneous image/TTS stability.
@@ -550,7 +550,7 @@ Deployment and verification: commit `61d1adb` was deployed to Cortex by rebuildi
 
 The five completed live traces before this optimization measured 2.98–4.10 seconds from last detected speech to estimated first reply audio. Later-turn request setup/prefill to first token was 403–592 ms, versus 1213 ms on the first turn. Turn detection remained about one second; speculative Whisper finished in time and added effectively zero remaining transcription delay. No thinking delay or TTS busy retry was recorded in these completed traces. One VAD misfire was excluded from completed-turn timing.
 
-Memory incident resolution: the old native `pithagoras-audio-cpp.service` had restarted on boot with Breeze already loaded, blocking the managed addon from allocating another copy. Stopped/disabled it and removed both its unit and the already inactive Python `pithagoras-breeze.service` unit after approval; systemd reports both not-found/inactive. The managed model subsequently reported loaded successfully. Observed process VRAM was 6378 MiB for Qwen and 3668 MiB for managed Breeze. No context reduction, model quantization change, or CPU MoE adjustment was needed.
+Memory incident resolution: the old native `kratos-audio-cpp.service` had restarted on boot with Breeze already loaded, blocking the managed addon from allocating another copy. Stopped/disabled it and removed both its unit and the already inactive Python `kratos-breeze.service` unit after approval; systemd reports both not-found/inactive. The managed model subsequently reported loaded successfully. Observed process VRAM was 6378 MiB for Qwen and 3668 MiB for managed Breeze. No context reduction, model quantization change, or CPU MoE adjustment was needed.
 
 ## Adjustable browser VAD
 
@@ -566,7 +566,7 @@ During generation, an empty or whitespace-only composer shows an icon-only Stop 
 
 Added an opt-in `VOICE_PIPELINE_MODE=sequential` instance mode, leaving the default pipeline parallel. The baseline performs endpoint → one STT request → complete agent turn → synthesize all bounded speech chunks → playback. No speculative transcription, sentence-to-TTS overlap, playback during synthesis, or filler TTS during thinking/compaction. Voice stage labels the instance “Sequential baseline”. Cancellation and existing defaults remain supported. Thirty-three pipeline/transcription/hands-free tests passed, including explicit stage-barrier checks.
 
-Separate Cortex demo uses port 4101, source/image/container `pithagoras-sequential`, fresh data/workspaces, and no copied sessions/channels/routines or API credentials. A new demo login and separate cookie avoid interfering with the main portal. Shared GPU services require one recording at a time. See `docs/guide/voice-comparison.md` for the comparison protocol and remaining intermediate variants. This compares pipeline scheduling on the current optimized model stack, not the original historical implementation.
+Separate Cortex demo uses port 4101, source/image/container `kratos-sequential`, fresh data/workspaces, and no copied sessions/channels/routines or API credentials. A new demo login and separate cookie avoid interfering with the main portal. Shared GPU services require one recording at a time. See `docs/guide/voice-comparison.md` for the comparison protocol and remaining intermediate variants. This compares pipeline scheduling on the current optimized model stack, not the original historical implementation.
 
 Comparison correction: per user request, the test instance sets `VOICE_SKIP_FIRST_THINKING=false`. It no longer injects `enable_thinking=false` or strips the thinking budget on the first voice response. Model/provider thinking settings remain authoritative. The production instance retains its existing first-response optimization. Future comparison optimizations are added individually on request.
 

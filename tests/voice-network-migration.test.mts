@@ -10,14 +10,14 @@ test('managed networking automatically migrates running containers, preserves st
  process.env.DOCKER_SOCKET=path.join(dir,'docker.sock');
  process.env.PORTAL_CONTAINER_NAME='portal-test';
  let portalId='portal-one';
- let container:any={Config:{Labels:{'pithagoras.addon':'voice'}},HostConfig:{NetworkMode:'bridge'},State:{Running:true}};
+ let container:any={Config:{Labels:{'kratos.addon':'voice'}},HostConfig:{NetworkMode:'bridge'},State:{Running:true}};
  const calls:{method:string;url:string;body:any}[]=[];
  const server=http.createServer(async(req,res)=>{
   let raw='';for await(const c of req)raw+=c;
   const body=raw?JSON.parse(raw):undefined;const url=req.url!;const method=req.method!;
   calls.push({method,url,body});res.setHeader('Content-Type','application/json');
   if(url==='/containers/portal-test/json')return res.end(JSON.stringify({Id:portalId,State:{Running:true}}));
-  if(url==='/containers/pithagoras-voice/json'){res.statusCode=container?200:404;return res.end(JSON.stringify(container));}
+  if(url==='/containers/kratos-voice/json'){res.statusCode=container?200:404;return res.end(JSON.stringify(container));}
   if(url.includes('/logs?'))return res.end(JSON.stringify('services ready'));
   if(url.startsWith('/images/'))return res.end('{}');
   if(url.includes('/stop?'))container.State.Running=false;
@@ -35,9 +35,9 @@ test('managed networking automatically migrates running containers, preserves st
   for(let n=0;n<100&&(await voice.status()).busy;n++)await new Promise(r=>setTimeout(r,10));
   assert.equal(container.HostConfig.NetworkMode,'container:portal-one');
   assert.equal(container.HostConfig.PortBindings,undefined);
-  assert.deepEqual(container.HostConfig.Binds,['pithagoras_voice-models:/voice']);
+  assert.deepEqual(container.HostConfig.Binds,['kratos_voice-models:/voice']);
   assert.equal((await voice.status()).state,'running');
-  assert.ok(calls.some(c=>c.method==='DELETE'&&c.url==='/containers/pithagoras-voice'));
+  assert.ok(calls.some(c=>c.method==='DELETE'&&c.url==='/containers/kratos-voice'));
   assert.ok(!calls.some(c=>c.method==='DELETE'&&c.url.startsWith('/volumes')));
   // Updating the portal's identity must reattach the still-running add-on.
   portalId='portal-two';assert.equal((await voice.status()).state,'installing');

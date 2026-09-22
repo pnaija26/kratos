@@ -49,10 +49,10 @@ Four ship in the repo, between them covering every shape a transport takes:
 
 | Package | Shape | Notes |
 | --- | --- | --- |
-| `pithagoras-channel-telegram` | Long polling | Outbound only. The Bot API has no socket — see below. |
-| `pithagoras-channel-slack` | WebSocket | Socket Mode, which exists so an app needs no public URL. |
-| `pithagoras-channel-discord` | WebSocket | The Gateway, with the heartbeat it demands. |
-| `pithagoras-channel-webhook` | A listener | POST a message, the reply comes back in the response. |
+| `kratos-channel-telegram` | Long polling | Outbound only. The Bot API has no socket — see below. |
+| `kratos-channel-slack` | WebSocket | Socket Mode, which exists so an app needs no public URL. |
+| `kratos-channel-discord` | WebSocket | The Gateway, with the heartbeat it demands. |
+| `kratos-channel-webhook` | A listener | POST a message, the reply comes back in the response. |
 
 None of them needs a dependency: `fetch` and `WebSocket` are both globals on
 Node 22, which the portal requires anyway.

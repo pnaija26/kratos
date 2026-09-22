@@ -1,7 +1,7 @@
 services:
   portal:
     build: .
-    container_name: pithagoras
+    container_name: kratos
     restart: unless-stopped
     network_mode: host
     volumes:
@@ -14,7 +14,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
       # Must match container_name; managed voice shares this network namespace.
-      PORTAL_CONTAINER_NAME: pithagoras
+      PORTAL_CONTAINER_NAME: kratos
       # With host networking the portal binds PORT directly on the host.
       PORT: ${PORT:-4100}
       PORTAL_PASSWORD: ${PORTAL_PASSWORD:?set PORTAL_PASSWORD in .env}

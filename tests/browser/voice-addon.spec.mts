@@ -20,7 +20,7 @@ test('settings install progress, ready connection, and stop',async({page})=>{
  await page.getByRole('button',{name:'Stop · release VRAM'}).click();
  await expect(page.getByRole('button',{name:'Start voice',exact:true})).toBeEnabled();
  expect(actions).toEqual(['install','stop']);
- await page.screenshot({path:'/tmp/pithagoras-voice-addon.png'});
+ await page.screenshot({path:'/tmp/kratos-voice-addon.png'});
 });
 
 test('speech detection settings save and restore defaults',async({page})=>{
@@ -38,5 +38,5 @@ test('speech detection settings save and restore defaults',async({page})=>{
  await expect(silence).toHaveValue('500');
  await page.getByRole('button',{name:'Reset speech detection'}).click();
  await expect(silence).toHaveValue('1000');
- await page.screenshot({path:'/tmp/pithagoras-vad-settings.png'});
+ await page.screenshot({path:'/tmp/kratos-vad-settings.png'});
 });

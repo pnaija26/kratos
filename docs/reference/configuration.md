@@ -43,7 +43,7 @@ an empty field inherits, and clearing one hands the setting back.
 | `AGENT_HOME` | `/data/agent-home` | The agent session's directory. |
 | `HOME` | `/data/home` | pi's home — its settings and packages. |
 | `EXECUTOR` | `host` | `host` or `container`. |
-| `PI_IMAGE` | `pithagoras-runner:latest` | Image for the container executor. |
+| `PI_IMAGE` | `kratos-runner:latest` | Image for the container executor. |
 | `TASK_MEMORY_MB` | `2048` | Container executor memory ceiling. |
 | `TASK_CPUS` | `2` | Container executor CPU ceiling. |
 | `TASK_PIDS_LIMIT` | `512` | Container executor process ceiling. |

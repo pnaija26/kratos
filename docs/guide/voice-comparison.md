@@ -12,7 +12,7 @@ This is a pipeline baseline on the current model/runtime, not a reconstruction o
 
 ## Isolation and access
 
-Comparison source: `/opt/pithagoras-sequential`; image/container: `pithagoras-sequential`; data volume: `pithagoras-sequential-data`; workspaces: `/root/pithagoras-sequential-workspaces`. No primary sessions, channels, routines or API credentials were copied. The demo has a new password saved at `/opt/pithagoras-sequential/demo-password.txt`, a separate cookie, the local keyless Qwen connection and the saved Aria reference/settings. It has no Docker control socket. Main instance remains independently deployed.
+Comparison source: `/opt/kratos-sequential`; image/container: `kratos-sequential`; data volume: `kratos-sequential-data`; workspaces: `/root/kratos-sequential-workspaces`. No primary sessions, channels, routines or API credentials were copied. The demo has a new password saved at `/opt/kratos-sequential/demo-password.txt`, a separate cookie, the local keyless Qwen connection and the saved Aria reference/settings. It has no Docker control socket. Main instance remains independently deployed.
 
 ## Temporary experiment and rollback
 
@@ -20,17 +20,17 @@ These are temporary comparison changes. Main production is still the code from `
 
 Pinned images on Cortex:
 
-- `pithagoras-portal:before-sequential-demo-20260913`: `sha256:026db1c94edf0c69d2e0ff3c25f5556015370bcff059d3a226158d0b0701f9dd`
-- `pithagoras-sequential:baseline-20260913`: `sha256:372128da898a5638474b45209ba1dca2b823c52d5987ad5cd8603116f436093c`
+- `kratos-portal:before-sequential-demo-20260913`: `sha256:026db1c94edf0c69d2e0ff3c25f5556015370bcff059d3a226158d0b0701f9dd`
+- `kratos-sequential:baseline-20260913`: `sha256:372128da898a5638474b45209ba1dca2b823c52d5987ad5cd8603116f436093c`
 
 To end the experiment without deleting recordings or sessions, run on Cortex:
 
 ```sh
-docker update --restart=no pithagoras-sequential
-docker stop pithagoras-sequential
+docker update --restart=no kratos-sequential
+docker stop kratos-sequential
 ```
 
-The main instance and shared LLM/voice services need no rollback. Leave the demo data volume and workspaces intact. `docker start pithagoras-sequential` resumes the saved baseline later.
+The main instance and shared LLM/voice services need no rollback. Leave the demo data volume and workspaces intact. `docker start kratos-sequential` resumes the saved baseline later.
 
 To turn all application-level voice optimizations back on in a future comparison stage, recreate only the demo container with `VOICE_PIPELINE_MODE=parallel`, `VOICE_SKIP_FIRST_THINKING=true`, and `VOICE_RESPONSE_INSTRUCTIONS=true`, retaining its data volume and other configuration. Stage changes should be recorded individually. Changing pipeline mode also changes the current cookie name, so log in again afterward.
 
@@ -54,7 +54,7 @@ Progressive STT often finishes before endpoint detection, but a final request is
 
 The demo now uses the real router preset `qwen36-35b-a3b-mtp-demo`, with `ubatch-size=128`, `batch-size=2048`, one slot and 80K context. The original `qwen36-35b-a3b-mtp` preset retains ubatch 1024. The preset file was backed up before appending the demo section and hot-reloaded without restarting the router. Because the router loads at most one model, switching between demo and main aliases can trigger a model reload; record warm-up separately. This ubatch change is an additional variable in comparisons.
 
-Browser container/profile: `pithagoras-sequential-browser` / `pithagoras-sequential-browser-profile`, with CDP 9223, HTTPS viewer 3021, HTTP viewer 3020 and internal websocket 8084. No original browser logins or credentials were copied. The demo portal connects using `BROWSER_EXTERNAL=true`, `BROWSER_CDP_URL=http://127.0.0.1:9223`, and `BROWSER_STREAM_PORT=8084`; it has no Docker socket and does not own browser lifecycle. Browser MCP is installed and connected, and enabled for “Sequential baseline demo”. New sessions can enable it from the composer browser toggle.
+Browser container/profile: `kratos-sequential-browser` / `kratos-sequential-browser-profile`, with CDP 9223, HTTPS viewer 3021, HTTP viewer 3020 and internal websocket 8084. No original browser logins or credentials were copied. The demo portal connects using `BROWSER_EXTERNAL=true`, `BROWSER_CDP_URL=http://127.0.0.1:9223`, and `BROWSER_STREAM_PORT=8084`; it has no Docker socket and does not own browser lifecycle. Browser MCP is installed and connected, and enabled for “Sequential baseline demo”. New sessions can enable it from the composer browser toggle.
 
 Verification: live worker arguments confirmed ubatch 128/batch 2048. In the isolated “Browser capability check” session, the model navigated to example.com, read a browser snapshot and correctly reported “Example Domain”. The viewer returned HTTP 200. Stopping the temporary demo should now include stopping its browser container; keep its profile volume for recovery. Restore the demo to the original alias before removing the temporary router preset if undoing the ubatch experiment.
 

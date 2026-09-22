@@ -292,6 +292,40 @@ export async function start(ctx) {
       }
     };
 
+    // Fixed commands for llama-server, checked before the agent ever sees the
+    // message. Deliberate: /llamastart has to work even when the local model
+    // is the agent's only provider and is currently down - at that point the
+    // agent cannot generate a reply to anything, including a plain-English
+    // "start the model", since doing so needs the very model that is missing.
+    // These bypass the LLM entirely and hit the host-side control service
+    // directly, so they work regardless of whether anything else does.
+    const llamaCommand = { "/llamastart": "start", "/llamastop": "stop", "/llamastatus": "status" }[
+      text.trim().toLowerCase()
+    ];
+    if (llamaCommand) {
+      try {
+        const res = await fetch(`http://127.0.0.1:4101/${llamaCommand}`, {
+          method: llamaCommand === "status" ? "GET" : "POST",
+          signal: AbortSignal.timeout(10000),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (llamaCommand === "status") {
+          await say(data.running ? "llama-server is running." : "llama-server is stopped.");
+        } else if (llamaCommand === "start") {
+          await say(
+            data.note === "already running"
+              ? "Already running."
+              : "Starting llama-server — loading a 27B model takes 30-90s. Send /llamastatus shortly to confirm."
+          );
+        } else {
+          await say(data.ok ? "Stopped." : `Stop may not have completed: ${data.output || ""}`);
+        }
+      } catch (e) {
+        await say(`Couldn't reach the control service on the PC — is it powered on and running? (${e.message})`);
+      }
+      return true;
+    }
+
     try {
       await call(token, "sendChatAction", { chat_id: chatId, action: "typing" }, ctx.signal);
       // The chat id is the conversation: a DM and a group have different ones,

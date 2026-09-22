@@ -695,7 +695,7 @@ const server = (tls ? createHttpsServer(tls, app) : createHttpServer(app)).liste
   PORT,
   "0.0.0.0",
   () => {
-  console.log(`pithagoras listening on :${PORT}${tls ? " (https)" : ""}`);
+  console.log(`kratos listening on :${PORT}${tls ? " (https)" : ""}`);
   console.log(`  local bin: ${BIN_DIR}`);
   console.log(`  executor: ${EXECUTOR_KIND}`);
   console.log(`  workspaces: ${WORKSPACE_ROOT}`);

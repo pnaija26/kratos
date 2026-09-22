@@ -1,5 +1,5 @@
 {
-  "name": "@pithagoras/web",
+  "name": "@kratos/web",
   "private": true,
   "type": "module",
   "scripts": {

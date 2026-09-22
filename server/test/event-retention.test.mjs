@@ -3,7 +3,7 @@ import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
-const dataDir=mkdtempSync(join(tmpdir(),'pithagoras-event-retention-'));
+const dataDir=mkdtempSync(join(tmpdir(),'kratos-event-retention-'));
 process.env.DATA_DIR=dataDir;
 const {appendEvent,eventsSince,getDb}=await import('../dist/db.js');
 const {LiveEvents}=await import('../dist/live-events.js');

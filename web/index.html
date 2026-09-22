@@ -7,7 +7,7 @@
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
     <link rel="icon" type="image/png" sizes="192x192" href="/logo-192.png" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <title>Pithagoras</title>
+    <title>Kratos</title>
     <!--
       Runs before anything paints. Without it the page renders in the default
       theme and then corrects itself — a white flash on every load in dark mode.
@@ -15,7 +15,7 @@
     <script>
       (function () {
         try {
-          var t = localStorage.getItem("pithagoras.theme") || "system";
+          var t = localStorage.getItem("kratos.theme") || "system";
           var dark =
             t === "dark" ||
             (t === "system" && !matchMedia("(prefers-color-scheme: light)").matches);

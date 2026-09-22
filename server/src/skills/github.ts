@@ -187,7 +187,7 @@ async function withClone<T>(
   use: (ctx: { base: string; found: string[]; url: string; ref?: string; subpath?: string }) => Promise<T>
 ): Promise<T> {
   const { url, ref, subpath } = parseSpec(spec);
-  const tmp = mkdtempSync(path.join(os.tmpdir(), "pithagoras-skill-"));
+  const tmp = mkdtempSync(path.join(os.tmpdir(), "kratos-skill-"));
 
   try {
     const args = ["clone", "--depth", "1", "--quiet"];

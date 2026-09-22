@@ -2,9 +2,9 @@ import { readFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { containerState, dockerAvailable, imagePresent, pullImage, request } from './docker.js';
 
-export const CONTAINER = 'pithagoras-voice';
+export const CONTAINER = 'kratos-voice';
 export const IMAGE = 'nvidia/cuda:12.4.1-devel-ubuntu22.04';
-const VOLUME = 'pithagoras_voice-models';
+const VOLUME = 'kratos_voice-models';
 export const whisperUrl = 'http://127.0.0.1:8188/inference';
 export const breezeUrl = 'http://127.0.0.1:7862/v1/audio/speech';
 let pending = false;
@@ -23,9 +23,9 @@ export async function status() {
   const state = await containerState(CONTAINER);
   if (state.running && !pending) {
     const detail = await request<{Config?: {Labels?: Record<string,string>}; HostConfig?: {NetworkMode?: string}}>('GET', `/containers/${CONTAINER}/json`);
-    if (detail.body?.Config?.Labels?.['pithagoras.addon'] === 'voice') {
+    if (detail.body?.Config?.Labels?.['kratos.addon'] === 'voice') {
       const target = await voiceNetworkMode();
-      if (detail.body.Config.Labels['pithagoras.voice-network'] !== 'shared-v1' || detail.body.HostConfig?.NetworkMode !== target) {
+      if (detail.body.Config.Labels['kratos.voice-network'] !== 'shared-v1' || detail.body.HostConfig?.NetworkMode !== target) {
         await install();
         return {available:true, state:'installing', busy:true, progress:'Updating managed voice networking; keeping downloaded models', error:''};
       }
@@ -57,7 +57,7 @@ export async function voiceNetworkMode(): Promise<string> {
   return `container:${detail.body.Id}`;
 }
 export function containerSpec(script: string, networkMode: string) {
-  return { Image: IMAGE, Tty: true, Cmd: ['bash', '-c', script], Labels: { 'pithagoras.addon': 'voice', 'pithagoras.voice-network': 'shared-v1' },
+  return { Image: IMAGE, Tty: true, Cmd: ['bash', '-c', script], Labels: { 'kratos.addon': 'voice', 'kratos.voice-network': 'shared-v1' },
     HostConfig: { Binds: [`${VOLUME}:/voice`], NetworkMode: networkMode,
       DeviceRequests: [{ Driver: 'nvidia', Count: 1, Capabilities: [['gpu']] }],
       RestartPolicy: { Name: 'no' }, LogConfig: { Type: 'json-file', Config: { 'max-size': '10m', 'max-file': '2' } } } };
@@ -67,8 +67,8 @@ async function ensureContainer(script: string) {
   const existing = await request<{Config?: {Labels?: Record<string,string>}; HostConfig?: {NetworkMode?: string}; State?: {Running?: boolean}}>('GET', `/containers/${CONTAINER}/json`);
   if (existing.status !== 404) {
     if (existing.status >= 400) throw new Error(`Cannot inspect voice container: Docker ${existing.status}`);
-    if (existing.body.Config?.Labels?.['pithagoras.addon'] !== 'voice') throw new Error('The pithagoras-voice container is not a managed voice add-on. Rename it before installing.');
-    const current = existing.body.Config.Labels['pithagoras.voice-network'] === 'shared-v1' && existing.body.HostConfig?.NetworkMode === networkMode;
+    if (existing.body.Config?.Labels?.['kratos.addon'] !== 'voice') throw new Error('The kratos-voice container is not a managed voice add-on. Rename it before installing.');
+    const current = existing.body.Config.Labels['kratos.voice-network'] === 'shared-v1' && existing.body.HostConfig?.NetworkMode === networkMode;
     if (current) { await checked('POST', `/containers/${CONTAINER}/start`); return; }
     // Container config is immutable. Retain /voice and the cached model/build
     // files while replacing the old published-port container or stale namespace.

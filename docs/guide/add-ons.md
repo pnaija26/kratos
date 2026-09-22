@@ -1,6 +1,6 @@
 # Docker add-ons
 
-Pithagoras can install and manage **Browser** and **Voice** from **Settings → Add-ons**. Each runs in its own container on the same Docker host as Pithagoras.
+Kratos can install and manage **Browser** and **Voice** from **Settings → Add-ons**. Each runs in its own container on the same Docker host as Kratos.
 
 The portal talks directly to the host Docker API; no Docker CLI inside the portal and no Docker-in-Docker daemon are required.
 
@@ -54,7 +54,7 @@ docker compose up -d --build portal
 3. Set the required portal password.
 4. Select **Update the stack**.
 
-The Portainer service is named `pithagoras`, not `portal`.
+The Portainer service is named `kratos`, not `portal`.
 :::
 
 ### Verify Docker access
@@ -62,7 +62,7 @@ The Portainer service is named `pithagoras`, not `portal`.
 Run:
 
 ```sh
-docker exec pithagoras curl --fail --unix-socket /var/run/docker.sock http://localhost/_ping
+docker exec kratos curl --fail --unix-socket /var/run/docker.sock http://localhost/_ping
 ```
 
 Expected response: **`OK`**.
@@ -129,8 +129,8 @@ The first installation needs internet access for container registries, Ubuntu pa
 | Item | Value |
 | --- | --- |
 | Image | `lscr.io/linuxserver/chromium:latest` |
-| Container | `pithagoras-browser` |
-| Profile volume | `pithagoras_browser-profile` (override: `BROWSER_VOLUME`) |
+| Container | `kratos-browser` |
+| Profile volume | `kratos_browser-profile` (override: `BROWSER_VOLUME`) |
 | Network | Host |
 | Shared memory | 1 GiB |
 | Chromium security option | `seccomp=unconfined` |
@@ -140,7 +140,7 @@ The first installation needs internet access for container registries, Ubuntu pa
 Avoid port conflicts and keep browser/debugging ports private.
 :::
 
-For embedded browser access, serve Pithagoras over HTTPS and follow the certificate setup in the [browser guide](/guide/browser). Voice microphone access also requires HTTPS, except on localhost.
+For embedded browser access, serve Kratos over HTTPS and follow the certificate setup in the [browser guide](/guide/browser). Voice microphone access also requires HTTPS, except on localhost.
 
 ### Browser controls
 
@@ -185,7 +185,7 @@ Use **Add voice** for your own designed or reference-cloned voice. Installing th
 
 The managed installer:
 
-- Creates `pithagoras-voice` and the named volume `pithagoras_voice-models`, mounted at `/voice`.
+- Creates `kratos-voice` and the named volume `kratos_voice-models`, mounted at `/voice`.
 - Builds pinned audio.cpp with CUDA and Whisper.cpp without CUDA. **Whisper runs on CPU**; Breeze uses one NVIDIA GPU.
 - Downloads multilingual Whisper `base` and Breeze-TTS-2 BF16 GGUF, quantizes Breeze to **Q8_0** on CPU, verifies the generated file, then removes the BF16 source file after successful conversion.
 - Retains source trees, compiled binaries and model files in the named volume.
@@ -203,7 +203,7 @@ The managed installer:
 Check readiness from inside the portal container:
 
 ```sh
-docker exec pithagoras node -e 'Promise.all([8188,7862].map(async p => console.log(p, (await fetch(`http://127.0.0.1:${p}/health`)).status)))'
+docker exec kratos node -e 'Promise.all([8188,7862].map(async p => console.log(p, (await fetch(`http://127.0.0.1:${p}/health`)).status)))'
 ```
 
 Voice works with either bridge or host networking for the portal. Set
@@ -261,7 +261,7 @@ Run the CUDA `docker run --gpus all` check. Fix host driver, toolkit or passthro
 :::
 
 ::: details Setup stays at Starting
-Expand Setup log or run `docker logs --tail 100 -f pithagoras-voice`; compilation and quantization happen after container startup.
+Expand Setup log or run `docker logs --tail 100 -f kratos-voice`; compilation and quantization happen after container startup.
 :::
 
 ::: details Port already allocated
@@ -287,11 +287,11 @@ Add-on containers are managed separately; follow the recreate steps below.
 ### Diagnostic commands
 
 ```sh
-docker ps -a --filter name=pithagoras
-docker logs --tail 100 pithagoras-browser
-docker logs --tail 100 pithagoras-voice
+docker ps -a --filter name=kratos
+docker logs --tail 100 kratos-browser
+docker logs --tail 100 kratos-voice
 nvidia-smi
-docker volume inspect pithagoras_browser-profile pithagoras_voice-models
+docker volume inspect kratos_browser-profile kratos_voice-models
 ```
 
 Do not run the old Python Breeze/Whisper Compose overlay or systemd units alongside the managed installer unless you deliberately maintain separate endpoints and enough resources. They are alternative deployments, not prerequisites; duplicate services can consume VRAM even after you stop the managed add-on.
@@ -313,10 +313,10 @@ docker pull lscr.io/linuxserver/chromium:latest
 Voice's setup script is captured when its container is created. To apply a newer installer after updating the portal, end voice sessions, click **Stop · release VRAM**, and run:
 
 ```sh
-docker rm pithagoras-voice
+docker rm kratos-voice
 ```
 
-Then click **Install voice** again. Keep `pithagoras_voice-models` to reuse the models and builds; recreating is not a guarantee that every cached binary is rebuilt. The installer pins its runtime revisions rather than tracking upstream automatically.
+Then click **Install voice** again. Keep `kratos_voice-models` to reuse the models and builds; recreating is not a guarantee that every cached binary is rebuilt. The installer pins its runtime revisions rather than tracking upstream automatically.
 
 ### Remove Voice
 
@@ -327,7 +327,7 @@ To also erase downloaded models, source trees and builds, run the following **on
 
 ```sh
 # Destructive: the next installation must download/build the voice runtime again.
-docker volume rm pithagoras_voice-models
+docker volume rm kratos_voice-models
 ```
 :::
 
@@ -338,7 +338,7 @@ To erase browser logins, first click **Remove** in Settings, then delete the pro
 
 ```sh
 # Destructive: deletes the browser profile and saved logins.
-docker volume rm pithagoras_browser-profile
+docker volume rm kratos_browser-profile
 ```
 :::
 

@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/hero.png" alt="Pithagoras" width="620">
+  <img src="assets/hero.png" alt="Kratos" width="620">
 </p>
 
 <p align="center">

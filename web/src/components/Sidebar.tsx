@@ -149,7 +149,7 @@ export function Sidebar({
           className="h-6 w-6 shrink-0 object-contain"
           draggable={false}
         />
-        <h1 className="text-sm font-semibold tracking-tight text-fg">Pithagoras</h1>
+        <h1 className="text-sm font-semibold tracking-tight text-fg">Kratos</h1>
         <span
           className="ml-auto text-[10px] uppercase tracking-wider text-fg-faint"
           title="How sessions are executed"

@@ -1,6 +1,6 @@
 # Deploying
 
-Pithagoras ships as a container. It expects to run somewhere private — there is
+Kratos ships as a container. It expects to run somewhere private — there is
 a single password and no per-user separation, so put it behind Tailscale or a
 VPN rather than on a public address.
 
@@ -92,7 +92,7 @@ there is no Python to install either.
 volume. Drop a binary there — no redeploy, no image change:
 
 ```bash
-docker exec pithagoras sh -c "curl -fsSL <url> -o /data/bin/tool && chmod +x /data/bin/tool"
+docker exec kratos sh -c "curl -fsSL <url> -o /data/bin/tool && chmod +x /data/bin/tool"
 ```
 
 **The Dockerfile.** For anything that should be part of the deployment rather
@@ -157,7 +157,7 @@ without anyone opening the settings screen. If your organisation restricts who
 may enable Pages, do it once by hand instead: **Settings → Pages → Source →
 GitHub Actions**.
 
-The site is served from `/pithagoras/`, so `base` is set to match. On a custom
+The site is served from `/kratos/`, so `base` is set to match. On a custom
 domain, where the site sits at the root, override it:
 
 ```yaml

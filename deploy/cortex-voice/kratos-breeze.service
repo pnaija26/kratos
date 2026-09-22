@@ -1,5 +1,5 @@
 [Unit]
-Description=Pithagoras Breeze-TTS-2 speech synthesis
+Description=Kratos Breeze-TTS-2 speech synthesis
 After=network.target
 
 [Service]
