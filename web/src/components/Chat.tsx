@@ -6,13 +6,14 @@ import { latestBrowserActivity, latestTerminalActivity } from "../voice-browser"
 import { VoiceControl } from "./VoiceControl";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Streamdown, type DiagramPlugin } from "streamdown";
-import { LuGlobe, LuSquareTerminal, LuSquare, LuFileText, LuArrowUp, LuAudioLines } from "react-icons/lu";
+import { LuGlobe, LuSquareTerminal, LuSquare, LuFileText, LuArrowUp, LuAudioLines, LuDownload } from "react-icons/lu";
 import { api, type PiCommand, type PortalEvent, type Session } from "../api";
 import { activity, buildTranscript, type Activity } from "../transcript";
 import { HAS_MERMAID, loadMermaidPlugin } from "../mermaid";
 import { useResolvedTheme } from "../theme";
 import { ComposerBar } from "./ComposerBar";
 import { TerminalPanel } from "./TerminalPanel";
+import { DownloadDialog } from "./DownloadDialog";
 
 /**
  * Context the portal attaches to a message, and what to call it.
@@ -105,6 +106,7 @@ export function Chat({
   const [browserUp, setBrowserUp] = useState(false);
   const [watching, setWatching] = useState(false);
   const [terminal, setTerminal] = useState(false);
+  const [downloading, setDownloading] = useState(false);
   useWorkPanels(!voiceMode && watching, !voiceMode && terminal, canvasOpen, panel => { if(panel === "browser") setWatching(false); else if(panel === "terminal") setTerminal(false); else setCanvasOpen(false); });
   const browserPane = useRef<HTMLDivElement>(null);
 
@@ -307,9 +309,18 @@ export function Chat({
             className={`rounded-lg border px-2 py-1 text-xs transition ${canvasOpen ? 'border-accent/40 bg-accent/10 text-accent' : 'border-line text-fg-muted hover:bg-fg/5 hover:text-fg'}`}>
             <LuFileText className="h-3.5 w-3.5" />
           </button>
+          <button
+            onClick={() => setDownloading(true)}
+            aria-label="Download files"
+            title="Download files from this workspace as a zip"
+            className="rounded-lg border border-line px-2 py-1 text-xs text-fg-muted transition hover:bg-fg/5 hover:text-fg"
+          >
+            <LuDownload className="h-3.5 w-3.5" />
+          </button>
         </div>
         </div>
       </header>
+      {downloading && <DownloadDialog session={session} onClose={() => setDownloading(false)} />}
 
       <div className={voiceMode ? "hidden" : "flex min-h-0 flex-1"}>
       <div className="flex min-w-0 flex-1 flex-col">
