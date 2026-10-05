@@ -61,6 +61,65 @@ export interface SkillDiagnostic {
   path?: string;
 }
 
+/** One entry of a folder in a session's workspace. */
+export interface FileEntry {
+  name: string;
+  dir: boolean;
+  size: number;
+}
+
+/** Which parts of a workspace go into a download — see server/src/api/files.ts. */
+export interface DownloadSpec {
+  rules: Record<string, boolean>;
+  exclude: string[];
+}
+
+let downloadFrame: HTMLIFrameElement | null = null;
+
+/**
+ * Starts a zip download of part of a session's workspace.
+ *
+ * A form post into a hidden frame rather than a fetch: the browser streams the
+ * archive straight to disk with its own progress, where a fetch would have to
+ * hold the whole thing in memory as a blob first. The frame only ever loads a
+ * page when the server refused — a download does not navigate it — so a load
+ * means an error to read back.
+ */
+export function downloadWorkspace(id: string, spec: DownloadSpec, onError: (message: string) => void): void {
+  if (!downloadFrame) {
+    downloadFrame = document.createElement("iframe");
+    downloadFrame.name = "workspace-download";
+    downloadFrame.hidden = true;
+    document.body.appendChild(downloadFrame);
+  }
+  const frame = downloadFrame;
+  frame.onload = () => {
+    const text = frame.contentDocument?.body?.textContent ?? "";
+    // A blank page is the frame settling, not a refusal.
+    if (!text.trim()) return;
+    let message = "The download failed";
+    try {
+      message = JSON.parse(text).error || message;
+    } catch {
+      // Not ours — a proxy error page, say. The generic message will do.
+    }
+    onError(message);
+  };
+
+  const form = document.createElement("form");
+  form.method = "POST";
+  form.action = `/api/sessions/${id}/download`;
+  form.target = frame.name;
+  const field = document.createElement("input");
+  field.type = "hidden";
+  field.name = "spec";
+  field.value = JSON.stringify(spec);
+  form.appendChild(field);
+  document.body.appendChild(form);
+  form.submit();
+  form.remove();
+}
+
 /** Work the agent does on a schedule. */
 export interface Routine {
   id: string;
@@ -170,6 +229,10 @@ export const api = {
   renameSession: (id: string, title: string) =>
     json<Session>(`/api/sessions/${id}`, { method: "PATCH", body: JSON.stringify({ title }) }),
   deleteSession: (id: string) => json<{ ok: true }>(`/api/sessions/${id}`, { method: "DELETE" }),
+  sessionFiles: (id: string, path: string) =>
+    json<{ path: string; entries: FileEntry[] }>(
+      `/api/sessions/${id}/files?path=${encodeURIComponent(path)}`,
+    ),
   prompt: (id: string, message: string, options?: { voice?: boolean }) =>
     json<{ ok: true }>(`/api/sessions/${id}/prompt`, {
       method: "POST",
