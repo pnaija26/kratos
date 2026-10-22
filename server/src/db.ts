@@ -279,6 +279,36 @@ export function getDb(): Database.Database {
       key TEXT PRIMARY KEY,
       value TEXT NOT NULL
     );
+
+    -- One row per assistant message the model produced, for the dashboard.
+    -- Kept apart from the event log, which is trimmed per session and would
+    -- take the history of how fast the model was with it.
+    CREATE TABLE IF NOT EXISTS generations (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      session_id TEXT NOT NULL,
+      -- ISO, when the message finished.
+      at TEXT NOT NULL,
+      provider TEXT NOT NULL DEFAULT '',
+      model TEXT NOT NULL DEFAULT '',
+      input_tokens INTEGER NOT NULL DEFAULT 0,
+      output_tokens INTEGER NOT NULL DEFAULT 0,
+      cache_read INTEGER NOT NULL DEFAULT 0,
+      cost REAL NOT NULL DEFAULT 0,
+      stop_reason TEXT NOT NULL DEFAULT '',
+      -- Wall clock, measured here: request to last token, and to first token.
+      duration_ms INTEGER,
+      ttft_ms INTEGER,
+      -- llama.cpp's own timings when the portal's proxy saw them. Exact, and
+      -- separate for prefill and generation, which wall clock cannot split.
+      prompt_n INTEGER,
+      prompt_ms REAL,
+      predicted_n INTEGER,
+      predicted_ms REAL,
+      -- live | backfill: backfilled rows only have second-resolution times.
+      source TEXT NOT NULL DEFAULT 'live'
+    );
+    CREATE INDEX IF NOT EXISTS idx_generations_at ON generations(at);
+    CREATE INDEX IF NOT EXISTS idx_generations_session ON generations(session_id);
   `);
   migrate(db);
   return db;

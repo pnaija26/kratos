@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
-import { LuMessagesSquare, LuPin, LuPinOff, LuSearch, LuTrash2 } from "react-icons/lu";
+import { LuMessagesSquare, LuPencil, LuPin, LuPinOff, LuSearch, LuTrash2 } from "react-icons/lu";
+import { RenameField } from "./RenameField";
 import type { Session, SessionStatus } from "../api";
 
 const STATUS_STYLE: Record<SessionStatus, string> = {
@@ -38,13 +39,16 @@ export function SessionsPage({
   onSelect,
   onDelete,
   onPin,
+  onRename,
 }: {
   sessions: Session[];
   onSelect: (id: string) => void;
   onDelete: (id: string) => Promise<void>;
   onPin: (id: string, pinned: boolean) => Promise<void>;
+  onRename: (id: string, title: string) => Promise<void>;
 }) {
   const [query, setQuery] = useState("");
+  const [renaming, setRenaming] = useState<string | null>(null);
 
   const running = sessions.filter((s) => s.status === "running").length;
   const pinnedCount = sessions.filter((s) => s.pinned).length;
@@ -104,13 +108,19 @@ export function SessionsPage({
               {matches.map((s) => (
                 <li
                   key={s.id}
-                  onClick={() => onSelect(s.id)}
+                  onClick={() => renaming !== s.id && onSelect(s.id)}
                   className="group flex cursor-pointer items-center gap-3 rounded-xl border border-line bg-raised/40 px-3 py-2.5 transition hover:bg-fg/5"
                 >
                   <span className={`h-2 w-2 shrink-0 rounded-full ${STATUS_STYLE[s.status]}`} />
                   <div className="min-w-0 flex-1">
                     <div className="flex items-baseline gap-2">
-                      <p className="truncate text-sm text-fg">{s.title}</p>
+                      <RenameField
+                        value={s.title}
+                        editing={renaming === s.id}
+                        onDone={() => setRenaming(null)}
+                        onSave={(title) => onRename(s.id, title)}
+                        className="text-sm text-fg"
+                      />
                       {s.pinned && (
                         <LuPin className="h-3 w-3 shrink-0 text-accent/70" title="Pinned" />
                       )}
@@ -118,7 +128,18 @@ export function SessionsPage({
                     <p className="truncate font-mono text-[11px] text-fg-faint">{s.workspace}</p>
                   </div>
                   <span className="shrink-0 text-[11px] text-fg-faint">{when(s.updated_at)}</span>
-                  <div className="flex shrink-0 items-center gap-0.5 opacity-0 transition group-hover:opacity-100">
+                  <div className="flex shrink-0 items-center gap-0.5 opacity-0 transition focus-within:opacity-100 group-hover:opacity-100">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setRenaming(s.id);
+                      }}
+                      className="rounded p-1.5 text-fg-subtle hover:text-accent"
+                      title="Rename"
+                      aria-label={`Rename ${s.title}`}
+                    >
+                      <LuPencil className="h-3.5 w-3.5" />
+                    </button>
                     <button
                       onClick={(e) => {
                         e.stopPropagation();

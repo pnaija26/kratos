@@ -1,5 +1,8 @@
-import { readdir, stat } from "node:fs/promises";
+import { createWriteStream } from "node:fs";
+import { lstat, mkdir, readdir, realpath, rename, stat, unlink } from "node:fs/promises";
 import path from "node:path";
+import { Transform } from "node:stream";
+import { pipeline } from "node:stream/promises";
 import express, { type Request, type Router } from "express";
 import yazl from "yazl";
 import { getSession } from "../db.js";
@@ -142,6 +145,50 @@ function readSpec(req: Request): { rules: Rules; exclude: string[] } | null {
   return { rules, exclude };
 }
 
+/** Per file. Generous, since models and datasets are what people bring. */
+const UPLOAD_MAX_BYTES = Number(process.env.UPLOAD_MAX_BYTES) || 4 * 1024 ** 3;
+
+const formatLimit = () => `${Math.round(UPLOAD_MAX_BYTES / 1024 ** 2)} MB`;
+
+/**
+ * Refuse a folder that resolves outside the workspace.
+ *
+ * The path itself was already cleaned of `..`; this is about symlinks. The
+ * agent can make them, and one pointing at / would turn an upload into a write
+ * anywhere. Checked on the nearest folder that exists, since the rest is about
+ * to be created and cannot be a link yet.
+ */
+async function assertInside(workspace: string, dir: string): Promise<void> {
+  const root = await realpath(workspace);
+  let probe = dir;
+  for (;;) {
+    const real = await realpath(probe).catch(() => null);
+    if (real !== null) {
+      if (real !== root && !real.startsWith(root + path.sep)) throw new Error("That folder is outside the workspace");
+      if (!(await stat(real)).isDirectory()) throw new Error("Part of that path is a file, not a folder");
+      return;
+    }
+    const up = path.dirname(probe);
+    if (up === probe) throw new Error("Workspace not found");
+    probe = up;
+  }
+}
+
+/**
+ * What a file is served as when opened in the browser. Only media the viewer
+ * shows natively is typed; everything else goes out as plain text, so an HTML
+ * file the agent wrote shows its source rather than running on our origin.
+ */
+const MEDIA: Record<string, string> = {
+  ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".gif": "image/gif",
+  ".webp": "image/webp", ".avif": "image/avif", ".bmp": "image/bmp", ".ico": "image/x-icon",
+  ".svg": "image/svg+xml",
+  ".mp3": "audio/mpeg", ".m4a": "audio/mp4", ".wav": "audio/wav", ".ogg": "audio/ogg",
+  ".opus": "audio/ogg", ".flac": "audio/flac",
+  ".mp4": "video/mp4", ".webm": "video/webm", ".mov": "video/quicktime",
+  ".pdf": "application/pdf",
+};
+
 function archiveName(workspace: string): string {
   const base = path.basename(workspace).replace(/[^\w.-]+/g, "-") || "workspace";
   const stamp = new Date().toISOString().slice(0, 16).replace(/[-:]/g, "").replace("T", "-");
@@ -168,14 +215,141 @@ export function filesRouter(): Router {
     const entries = await Promise.all(
       dirents
         .filter((d) => d.isDirectory() || d.isFile())
-        .map(async (d) => ({
-          name: d.name,
-          dir: d.isDirectory(),
-          size: d.isFile() ? await stat(path.join(dir, d.name)).then((s) => s.size, () => 0) : 0,
-        })),
+        .map(async (d) => {
+          const s = await stat(path.join(dir, d.name)).catch(() => null);
+          return {
+            name: d.name,
+            dir: d.isDirectory(),
+            size: d.isFile() ? s?.size ?? 0 : 0,
+            mtime: s?.mtimeMs ?? 0,
+          };
+        }),
     );
     entries.sort((a, b) => Number(b.dir) - Number(a.dir) || a.name.localeCompare(b.name));
     res.json({ path: rel, entries });
+  });
+
+  /**
+   * One file of the workspace, to view or (with `download=1`) to save.
+   *
+   * Range requests are honoured, so the viewer can read the head of a large
+   * log without pulling all of it and video can seek. Opened directly, the
+   * page is sandboxed: an SVG is the one served type that can carry script.
+   * PDFs are spared, since the browser's viewer will not run in a sandbox.
+   */
+  router.get("/sessions/:id/file", async (req, res) => {
+    const session = getSession(req.params.id);
+    if (!session) return res.status(404).json({ error: "Not found" });
+    const rel = cleanRel(req.query.path ?? "");
+    if (!rel) return res.status(400).json({ error: "Invalid path" });
+    const target = absolute(session.workspace, rel);
+
+    try {
+      await assertInside(session.workspace, path.dirname(target));
+    } catch (e) {
+      return res.status(404).json({ error: (e as Error).message });
+    }
+    const s = await lstat(target).catch(() => null);
+    if (!s || s.isSymbolicLink() || !s.isFile()) return res.status(404).json({ error: "Not a file" });
+
+    const name = path.basename(rel);
+    const download = req.query.download === "1";
+    const type = download
+      ? "application/octet-stream"
+      : MEDIA[path.extname(name).toLowerCase()] ?? "text/plain; charset=utf-8";
+    const headers: Record<string, string> = {
+      "Content-Type": type,
+      "Content-Disposition": `${download ? "attachment" : "inline"}; filename="${name.replace(/[^\w.-]+/g, "_")}"; filename*=UTF-8''${encodeURIComponent(name)}`,
+      "X-Content-Type-Options": "nosniff",
+      "Cache-Control": "no-store",
+    };
+    if (type !== "application/pdf") headers["Content-Security-Policy"] = "sandbox; default-src 'none'; img-src 'self' data:; style-src 'unsafe-inline'; media-src 'self'";
+
+    res.sendFile(target, { dotfiles: "allow", headers, lastModified: false, etag: false }, (e) => {
+      if (e && !res.headersSent) res.status(404).json({ error: e.message });
+    });
+  });
+
+  /**
+   * One file into a folder of the workspace, as the raw request body.
+   *
+   * Raw rather than multipart so nothing needs parsing and nothing is held in
+   * memory: the body is piped to a temporary file beside the target and renamed
+   * into place once complete, so an interrupted upload never leaves a truncated
+   * file where the agent would read it. `name` may carry subfolders — a folder
+   * dropped in the browser arrives one file at a time with its relative path.
+   */
+  router.post("/sessions/:id/upload", async (req, res) => {
+    const session = getSession(req.params.id);
+    if (!session) return res.status(404).json({ error: "Not found" });
+    const dir = cleanRel(req.query.path ?? "");
+    const name = cleanRel(req.query.name ?? "");
+    if (dir === null || !name) return res.status(400).json({ error: "Invalid path or file name" });
+    const rel = dir ? `${dir}/${name}` : name;
+    if (rel.split("/").some((part) => part === ".." || part === ".")) {
+      return res.status(400).json({ error: "Invalid path" });
+    }
+    const target = absolute(session.workspace, rel);
+
+    try {
+      await assertInside(session.workspace, path.dirname(target));
+    } catch (e) {
+      return res.status(400).json({ error: (e as Error).message });
+    }
+    const existing = await lstat(target).catch(() => null);
+    if (existing?.isDirectory()) return res.status(409).json({ error: `"${rel}" is a folder` });
+    if (existing?.isSymbolicLink()) return res.status(409).json({ error: `"${rel}" is a symlink` });
+    if (existing && req.query.overwrite !== "1") {
+      return res.status(409).json({ error: `"${rel}" already exists`, exists: true });
+    }
+
+    // A body some parser already consumed — a .json file sent with its own
+    // content type, say — would arrive here empty and save as a blank file.
+    if (req.readableEnded) {
+      return res.status(415).json({ error: "Send the file as application/octet-stream" });
+    }
+    const declared = Number(req.headers["content-length"]);
+    if (Number.isFinite(declared) && declared > UPLOAD_MAX_BYTES) {
+      return res.status(413).json({ error: `Larger than the ${formatLimit()} upload limit` });
+    }
+
+    await mkdir(path.dirname(target), { recursive: true });
+    const temp = `${target}.kratos-upload-${process.pid}-${Date.now()}`;
+    let received = 0;
+    const limiter = new Transform({
+      transform(chunk: Buffer, _enc, done) {
+        received += chunk.length;
+        if (received > UPLOAD_MAX_BYTES) done(new Error(`Larger than the ${formatLimit()} upload limit`));
+        else done(null, chunk);
+      },
+    });
+    try {
+      await pipeline(req, limiter, createWriteStream(temp, { flags: "wx" }));
+      await rename(temp, target);
+    } catch (e) {
+      await unlink(temp).catch(() => {});
+      if (res.headersSent || req.destroyed) return;
+      const tooBig = received > UPLOAD_MAX_BYTES;
+      return res.status(tooBig ? 413 : 500).json({ error: (e as Error).message });
+    }
+    res.json({ ok: true, path: rel, size: received });
+  });
+
+  /** An empty folder to upload into. */
+  router.post("/sessions/:id/folders", async (req, res) => {
+    const session = getSession(req.params.id);
+    if (!session) return res.status(404).json({ error: "Not found" });
+    const rel = cleanRel(req.body?.path);
+    if (!rel) return res.status(400).json({ error: "Invalid folder name" });
+    const target = absolute(session.workspace, rel);
+    try {
+      await assertInside(session.workspace, path.dirname(target));
+      if (await lstat(target).catch(() => null)) return res.status(409).json({ error: `"${rel}" already exists` });
+      await mkdir(target, { recursive: true });
+    } catch (e) {
+      return res.status(400).json({ error: (e as Error).message });
+    }
+    res.json({ ok: true, path: rel });
   });
 
   router.post(

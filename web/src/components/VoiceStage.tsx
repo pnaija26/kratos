@@ -27,8 +27,8 @@ function VoiceOrb({ mode, levels }: { mode: OrbMode; levels: MutableRefObject<Vo
     element.width = size * ratio; element.height = size * ratio;
     ctx.scale(ratio, ratio);
     let frame = 0, level = 0;
-    let color = [130, 188, 255];
-    const colors = { input: [83, 247, 215], output: [190, 159, 255], idle: [130, 188, 255], muted: [161, 179, 204] };
+    let color = [228, 228, 231];
+    const colors = { input: [255, 255, 255], output: [212, 212, 216], idle: [228, 228, 231], muted: [130, 130, 138] };
     const render = (timestamp: number) => {
       const mode = current.current;
       const value = mode === "input" ? levels.current.input : mode === "output" ? levels.current.output : 0;
@@ -69,13 +69,13 @@ function VoiceOrb({ mode, levels }: { mode: OrbMode; levels: MutableRefObject<Vo
         ctx.bezierCurveTo(-r * 0.45, y - 60 + bend, r * 0.35, y + 65 + bend, r * 1.3, y - 20);
         ctx.bezierCurveTo(r * 0.3, y + 85 + bend, -r * 0.4, y - 40 + bend, -r * 1.3, y + 9);
         const ribbon = ctx.createLinearGradient(-r, -r, r, r);
-        ribbon.addColorStop(0, `rgba(231,255,255,${0.04 + band * 0.003})`);
+        ribbon.addColorStop(0, `rgba(255,255,255,${0.04 + band * 0.003})`);
         ribbon.addColorStop(0.45, `rgba(${rgb},${0.24 + level * 0.12})`);
-        ribbon.addColorStop(1, "rgba(192,190,255,0.03)");
+        ribbon.addColorStop(1, "rgba(200,200,205,0.03)");
         ctx.fillStyle = ribbon; ctx.fill();
       }
       const shine = ctx.createRadialGradient(-r * 0.33, -r * 0.55, 0, -r * 0.33, -r * 0.55, r * 0.85);
-      shine.addColorStop(0, "rgba(238,255,255,0.45)"); shine.addColorStop(0.35, "rgba(233,253,255,0.08)"); shine.addColorStop(1, "rgba(255,255,255,0)");
+      shine.addColorStop(0, "rgba(255,255,255,0.45)"); shine.addColorStop(0.35, "rgba(255,255,255,0.08)"); shine.addColorStop(1, "rgba(255,255,255,0)");
       ctx.fillStyle = shine; ctx.fillRect(-r, -r, 2 * r, 2 * r);
       ctx.restore(); ctx.restore();
       frame = requestAnimationFrame(render);

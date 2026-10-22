@@ -66,6 +66,139 @@ export interface FileEntry {
   name: string;
   dir: boolean;
   size: number;
+  /** Last modified, epoch ms. */
+  mtime?: number;
+}
+
+/** Where one file of a session's workspace is served — to show inline, or to save. */
+export function fileUrl(sessionId: string, path: string, opts: { download?: boolean } = {}): string {
+  const q = new URLSearchParams({ path, ...(opts.download ? { download: "1" } : {}) });
+  return `/api/sessions/${sessionId}/file?${q}`;
+}
+
+/**
+ * Put one file into a folder of a session's workspace.
+ *
+ * Sent raw, with an explicit octet-stream type: left to itself the browser
+ * labels a .json file application/json, the server's JSON parser swallows the
+ * body, and an empty file is what lands on disk. XHR rather than fetch for the
+ * upload progress, which fetch still cannot report.
+ */
+export function uploadFile(
+  sessionId: string,
+  dir: string,
+  name: string,
+  file: Blob,
+  opts: { overwrite?: boolean; onProgress?: (loaded: number) => void; signal?: AbortSignal } = {},
+): Promise<{ ok: true; path: string; size: number }> {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    const q = new URLSearchParams({ path: dir, name, ...(opts.overwrite ? { overwrite: "1" } : {}) });
+    xhr.open("POST", `/api/sessions/${sessionId}/upload?${q}`);
+    xhr.setRequestHeader("Content-Type", "application/octet-stream");
+    xhr.upload.onprogress = (e) => opts.onProgress?.(e.loaded);
+    xhr.onload = () => {
+      let body: any = {};
+      try {
+        body = JSON.parse(xhr.responseText);
+      } catch {
+        // Not ours — a proxy page. The status says enough.
+      }
+      if (xhr.status >= 200 && xhr.status < 300) resolve(body);
+      else reject(Object.assign(new Error(body.error || `HTTP ${xhr.status}`), { status: xhr.status, exists: Boolean(body.exists) }));
+    };
+    xhr.onerror = () => reject(new Error("The upload was interrupted"));
+    xhr.onabort = () => reject(new Error("Cancelled"));
+    opts.signal?.addEventListener("abort", () => xhr.abort());
+    xhr.send(file);
+  });
+}
+
+/** One generation, as the dashboard and job browser plot it. */
+export interface GenerationPoint {
+  at: string;
+  sessionId: string;
+  model: string;
+  outputTokens: number;
+  inputTokens: number;
+  /** Generation speed, tokens/s; null when it could not be measured. */
+  tps: number | null;
+  /** Prompt processing speed — llama.cpp only. */
+  prefillTps: number | null;
+  ttftMs: number | null;
+  durationMs: number | null;
+  /** True when the speed is llama.cpp's own measurement, not wall clock. */
+  exact: boolean;
+  source: string;
+}
+
+export interface SpeedSummary {
+  avgTps: number | null;
+  medianTps: number | null;
+  p10Tps: number | null;
+  p90Tps: number | null;
+  peakTps: number | null;
+  avgPrefillTps: number | null;
+  avgTtftMs: number | null;
+  measured: number;
+}
+
+export type AnalyticsRange = "1" | "7" | "30" | "90" | "all";
+
+export interface Analytics {
+  range: { days: number | null; since: string | null };
+  totals: SpeedSummary & {
+    generations: number;
+    outputTokens: number;
+    inputTokens: number;
+    cacheRead: number;
+    cost: number;
+    sessions: number;
+    /** Backfilled from the event log: timed end to end, prefill included. */
+    estimated: number;
+  };
+  latest: GenerationPoint | null;
+  series: { day: string; generations: number; outputTokens: number; inputTokens: number; avgTps: number | null }[];
+  points: GenerationPoint[];
+  models: (SpeedSummary & { provider: string; model: string; generations: number; outputTokens: number; inputTokens: number; cost: number })[];
+  sessions: (SpeedSummary & { id: string; title: string | null; kind: string | null; generations: number; outputTokens: number })[];
+  jobs: { total: number; byStatus: Record<string, number>; byKind: Record<string, number> };
+}
+
+/** Any session, of any kind, as the job browser lists it. */
+export interface Job {
+  id: string;
+  title: string;
+  kind: "task" | "agent" | "routine";
+  status: SessionStatus;
+  workspace: string;
+  executor: string;
+  pinned: boolean;
+  live: boolean;
+  created_at: string;
+  updated_at: string;
+  last_error: string | null;
+  model: string | null;
+  provider: string | null;
+  origin: { type: "routine" | "channel"; slug: string; name: string } | null;
+  stats: { generations: number; outputTokens: number; inputTokens: number; cost: number; lastGenerationAt: string | null };
+}
+
+export interface JobActivity {
+  seq: number;
+  at?: number;
+  kind: "prompt" | "assistant" | "tool" | "error" | "notice" | "run";
+  text: string;
+  detail?: string;
+  failed?: boolean;
+}
+
+export interface JobDetail {
+  job: Job;
+  speed: SpeedSummary;
+  generations: GenerationPoint[];
+  events: { count: number; first: number | null; last: number | null };
+  activity: JobActivity[];
 }
 
 /** Which parts of a workspace go into a download — see server/src/api/files.ts. */
@@ -229,6 +362,12 @@ export const api = {
   renameSession: (id: string, title: string) =>
     json<Session>(`/api/sessions/${id}`, { method: "PATCH", body: JSON.stringify({ title }) }),
   deleteSession: (id: string) => json<{ ok: true }>(`/api/sessions/${id}`, { method: "DELETE" }),
+  createFolder: (id: string, path: string) =>
+    json<{ ok: true; path: string }>(`/api/sessions/${id}/folders`, { method: "POST", body: JSON.stringify({ path }) }),
+  analytics: (range: AnalyticsRange) =>
+    json<Analytics>(`/api/analytics?days=${range}&tz=${-new Date().getTimezoneOffset()}`),
+  jobs: () => json<{ jobs: Job[] }>("/api/jobs"),
+  job: (id: string, limit = 200) => json<JobDetail>(`/api/jobs/${id}?limit=${limit}`),
   sessionFiles: (id: string, path: string) =>
     json<{ path: string; entries: FileEntry[] }>(
       `/api/sessions/${id}/files?path=${encodeURIComponent(path)}`,

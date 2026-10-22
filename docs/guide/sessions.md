@@ -35,7 +35,48 @@ paths.
 Pinning is stored server-side and drives the ordering (`pinned DESC,
 updated_at DESC`), so the sidebar and the Sessions page never disagree.
 
-Hovering a session gives you pin and delete. Double-clicking its name renames it.
+Hovering a session gives you rename, pin and delete. The name is edited in
+place: Enter saves, Escape puts it back. Double-clicking a name does the same,
+in the sidebar, on the Sessions page, in the chat header and in the job browser.
+
+## Importing files
+
+The upload button in the chat header opens the session's workspace. Open the
+folder the files should go in, then drop files (or whole folders, which keep
+their structure) onto it, or use **Import files**. Each file is streamed to disk
+and only moved into place once complete, so an interrupted upload never leaves
+a half-written file for the agent to read. An existing file is never replaced
+without asking. The per-file limit is 4 GB, set with `UPLOAD_MAX_BYTES`.
+
+## Viewing files
+
+Click any file in that browser to open it. Text and code show with line
+numbers. Images, audio, video and PDFs play or display in place. For a large
+file, only the first 512 KB is shown. A binary file can't be shown, so you get a
+download button instead. Every file can also be downloaded or opened in its own
+tab. HTML and SVG files can't run scripts in the portal: HTML shows as its
+source, and anything opened in its own tab is sandboxed.
+
+The same browser is the **Files** tab of every job in the job browser.
+
+## Jobs
+
+**Jobs** lists every session of every kind — tasks, agent conversations and
+routine runs — filterable by kind and status. Opening one shows its overview
+(model, timing, generation speed per message), a condensed activity log of
+prompts, replies, tool calls and errors, and its workspace files. Looking at a
+job never starts pi; **Open chat** is the way in.
+
+## Dashboard
+
+**Dashboard** shows generation speed in tokens per second, prompt-processing
+speed, time to first token, and tokens produced per day and per model.
+
+For a local llama.cpp server reached through the portal (the `host` executor),
+the speeds are llama-server's own timings, read off the stream. Everything
+else is timed by wall clock from the first streamed token to the last. History
+from before this was added is filled in once from the event log; those messages
+are timed end to end, prompt processing included, so they read slower.
 
 ## Model and effort
 

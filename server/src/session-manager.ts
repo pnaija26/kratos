@@ -6,6 +6,7 @@ import path from "node:path";
 import type { PiClient } from "./pi/types.js";
 import { findServerBuiltin, runBuiltin } from "./pi/builtins.js";
 import { buildExecutor, type Executor, type ExecutorKind } from "./executors/index.js";
+import { generationTracker } from "./metrics.js";
 import {
   appendEvent,
   getSession,
@@ -265,6 +266,12 @@ class SessionManager extends EventEmitter {
 
     client.on("event", (msg) => {
       rememberSessionFile();
+      // Before recording: a failure to measure must never cost the transcript.
+      try {
+        generationTracker.observe(sessionId, msg);
+      } catch (e) {
+        console.error(`[metrics] ${sessionId}: ${(e as Error).message}`);
+      }
       this.record(sessionId, msg.type, msg);
       // Status follows pi's own run state rather than being guessed at the
       // moments the portal happens to know about. agent_start covers a run
@@ -286,6 +293,7 @@ class SessionManager extends EventEmitter {
     client.on("exit", ({ code, signal }: { code: number | null; signal: string | null }) => {
       this.live.delete(sessionId);
       this.stream.clear(sessionId);
+      generationTracker.forget(sessionId);
       const current = getSession(sessionId);
       // A clean exit after a finished run is normal; anything else is a failure
       // worth surfacing in the UI rather than leaving as a silent stall.

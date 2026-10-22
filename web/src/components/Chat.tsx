@@ -6,7 +6,7 @@ import { latestBrowserActivity, latestTerminalActivity } from "../voice-browser"
 import { VoiceControl } from "./VoiceControl";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Streamdown, type DiagramPlugin } from "streamdown";
-import { LuGlobe, LuSquareTerminal, LuSquare, LuFileText, LuArrowUp, LuAudioLines, LuDownload } from "react-icons/lu";
+import { LuGlobe, LuSquareTerminal, LuSquare, LuFileText, LuArrowUp, LuAudioLines, LuDownload, LuPencil, LuUpload } from "react-icons/lu";
 import { api, type PiCommand, type PortalEvent, type Session } from "../api";
 import { activity, buildTranscript, type Activity } from "../transcript";
 import { HAS_MERMAID, loadMermaidPlugin } from "../mermaid";
@@ -14,6 +14,9 @@ import { useResolvedTheme } from "../theme";
 import { ComposerBar } from "./ComposerBar";
 import { TerminalPanel } from "./TerminalPanel";
 import { DownloadDialog } from "./DownloadDialog";
+import { Modal } from "./Modal";
+import { RenameField } from "./RenameField";
+import { WorkspaceFiles } from "./WorkspaceFiles";
 
 /**
  * Context the portal attaches to a message, and what to call it.
@@ -84,8 +87,10 @@ export function Chat({
   hasEarlier,
   loadingEarlier,
   onLoadEarlier,
+  onRename,
 }: {
   session: Session;
+  onRename?: (title: string) => Promise<void>;
   events: PortalEvent[];
   hasEarlier?: boolean;
   loadingEarlier?: boolean;
@@ -107,6 +112,8 @@ export function Chat({
   const [watching, setWatching] = useState(false);
   const [terminal, setTerminal] = useState(false);
   const [downloading, setDownloading] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const [renaming, setRenaming] = useState(false);
   useWorkPanels(!voiceMode && watching, !voiceMode && terminal, canvasOpen, panel => { if(panel === "browser") setWatching(false); else if(panel === "terminal") setTerminal(false); else setCanvasOpen(false); });
   const browserPane = useRef<HTMLDivElement>(null);
 
@@ -267,10 +274,34 @@ export function Chat({
     <div className="session-workspace relative flex h-full min-h-0 flex-col">
       <CanvasPanel showToggle={false} key={session.id} sessionId={session.id} open={canvasOpen} setOpen={setCanvasOpen}/>
       <div ref={setVoiceHost} className={voiceMode ? "flex min-h-0 flex-1 flex-col" : "hidden"} />
-      <header className={voiceMode ? "hidden" : "border-b border-line px-4 py-3"}>
+      <header className={voiceMode ? "hidden" : "glass border-b border-line/40 px-4 py-3"}>
         <div className="mx-auto flex w-full max-w-3xl items-center gap-3">
         <div className="min-w-0">
-          <h2 className="truncate text-sm font-medium text-fg">{session.title}</h2>
+          <h2
+            className="group/title flex min-w-0 items-center gap-1.5 text-sm font-medium text-fg"
+            onDoubleClick={() => onRename && setRenaming(true)}
+          >
+            {onRename ? (
+              <RenameField
+                value={session.title}
+                editing={renaming}
+                onDone={() => setRenaming(false)}
+                onSave={onRename}
+              />
+            ) : (
+              <span className="truncate">{session.title}</span>
+            )}
+            {onRename && !renaming && (
+              <button
+                onClick={() => setRenaming(true)}
+                title="Rename session"
+                aria-label="Rename session"
+                className="shrink-0 rounded p-0.5 text-fg-faint opacity-0 transition hover:text-accent focus:opacity-100 group-hover/title:opacity-100"
+              >
+                <LuPencil className="h-3 w-3" />
+              </button>
+            )}
+          </h2>
           <p className="truncate font-mono text-[11px] text-fg-faint">{session.workspace}</p>
         </div>
         <div className="ml-auto flex items-center gap-2">
@@ -310,6 +341,14 @@ export function Chat({
             <LuFileText className="h-3.5 w-3.5" />
           </button>
           <button
+            onClick={() => setImporting(true)}
+            aria-label="Workspace files"
+            title="Browse, open and import workspace files"
+            className="rounded-lg border border-line px-2 py-1 text-xs text-fg-muted transition hover:bg-fg/5 hover:text-fg"
+          >
+            <LuUpload className="h-3.5 w-3.5" />
+          </button>
+          <button
             onClick={() => setDownloading(true)}
             aria-label="Download files"
             title="Download files from this workspace as a zip"
@@ -321,6 +360,16 @@ export function Chat({
         </div>
       </header>
       {downloading && <DownloadDialog session={session} onClose={() => setDownloading(false)} />}
+      {importing && (
+        <Modal
+          title="Workspace files"
+          subtitle="Click a file to open it. To import, open the target folder and drop files on it"
+          onClose={() => setImporting(false)}
+          wide
+        >
+          <WorkspaceFiles sessionId={session.id} workspace={session.workspace} className="h-[60vh]" />
+        </Modal>
+      )}
 
       <div className={voiceMode ? "hidden" : "flex min-h-0 flex-1"}>
       <div className="flex min-w-0 flex-1 flex-col">
@@ -339,8 +388,11 @@ export function Chat({
         )}
 
         {items.length === 0 && (
-          <div className="pt-16 text-center">
-            <p className="text-sm text-fg-muted">Give pi a task.</p>
+          <div className="flex flex-col items-center pt-20 text-center">
+            <div className="hero-halo mb-4">
+              <img src="/logo-192.png" alt="" className="h-14 w-14 rounded-2xl object-contain shadow-lg ring-1 ring-accent/30" draggable={false} />
+            </div>
+            <p className="text-gradient text-xl font-semibold tracking-tight">Give Kratos a task.</p>
             <p className="mt-1 text-xs text-fg-faint">You can close this tab — it keeps working.</p>
           </div>
         )}
@@ -361,7 +413,7 @@ export function Chat({
             }
             return (
               <div key={item.id} className="flex justify-end">
-                <div className="max-w-[80%] rounded-2xl rounded-br-md bg-accent/10 px-3.5 py-2 text-sm text-fg ring-1 ring-inset ring-accent/15">
+                <div className="max-w-[80%] bubble-user rounded-2xl rounded-br-md px-3.5 py-2 text-sm text-fg">
                   {item.audio && <div className="mb-1.5 flex items-center gap-1.5 text-[10px] font-medium tracking-wide text-accent" title="Sent in voice mode"><LuAudioLines size={13} aria-hidden="true" /><span>Audio</span></div>}
                   <div className="whitespace-pre-wrap">{text}</div>
                   {blocks.length > 0 && (
@@ -483,7 +535,7 @@ export function Chat({
             }
           }}
           rows={2}
-          placeholder={running ? "pi is working — send to queue a follow-up…" : "Describe the task…"}
+          placeholder={running ? "Kratos is working — send to queue a follow-up…" : "Describe the task…"}
           aria-label="Message"
           className="prompt-input"
         />
@@ -612,7 +664,10 @@ function ActivityLine({ phase, now }: { phase: Activity; now: number }) {
   return (
     <div className="py-1 text-xs text-fg-subtle">
       <div className="flex items-center gap-1.5">
-        <span className="h-1 w-1 animate-pulse rounded-full bg-accent" />
+        <span className="working-pill">
+          <span className="working-orb" aria-hidden />
+          <span className="working-shimmer">Kratos is working</span>
+        </span>
         <span>{phase.label}</span>
         {percent !== null && <span className="text-fg-muted">{percent}%</span>}
         {seconds >= 2 && <span className="text-fg-faint">· {formatElapsed(seconds)}</span>}

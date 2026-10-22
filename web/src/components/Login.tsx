@@ -22,10 +22,10 @@ export function Login({ onSuccess }: { onSuccess: () => void }) {
 
   return (
     <div className="flex h-screen items-center justify-center px-4">
-      <form onSubmit={submit} className="w-full max-w-[19rem]">
+      <form onSubmit={submit} className="card-glass w-full max-w-[22rem] rounded-3xl p-8">
         <div className="mb-6 flex flex-col items-center text-center">
-          <img src="/logo-512.png" alt="" className="h-16 w-16 object-contain" draggable={false} />
-          <h1 className="mt-3 text-base font-semibold tracking-tight text-fg">Kratos</h1>
+          <div className="hero-halo"><img src="/logo-512.png" alt="" className="h-16 w-16 rounded-2xl object-contain shadow-lg ring-1 ring-accent/30" draggable={false} /></div>
+          <h1 className="text-gradient mt-4 text-2xl font-bold tracking-tight">Kratos</h1>
           <p className="mt-1 text-xs text-fg-subtle">
             Give it a task, close the browser, come back later.
           </p>
@@ -44,7 +44,7 @@ export function Login({ onSuccess }: { onSuccess: () => void }) {
         <button
           type="submit"
           disabled={busy || !password}
-          className="mt-3 w-full rounded-xl bg-accent px-3 py-2.5 text-sm font-medium text-accent-fg transition hover:opacity-90 disabled:opacity-40"
+          className="btn-gold mt-3 w-full rounded-xl px-3 py-2.5 text-sm font-semibold disabled:opacity-40"
         >
           {busy ? "Checking…" : "Sign in"}
         </button>

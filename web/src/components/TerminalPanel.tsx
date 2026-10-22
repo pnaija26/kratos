@@ -21,7 +21,7 @@ export function TerminalPanel({ sessionId }: { sessionId: string }) {
       fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
       // Reads against the portal's own surfaces rather than shipping a second
       // colour scheme that only matches in one theme.
-      theme: { background: "#0b0b0d", foreground: "#d4d4d8" },
+      theme: { background: "#0a0a0a", foreground: "#d4d4d8" },
       cursorBlink: true,
       scrollback: 5000,
     });
@@ -62,5 +62,5 @@ export function TerminalPanel({ sessionId }: { sessionId: string }) {
     };
   }, [sessionId]);
 
-  return <div ref={host} className="h-full w-full bg-[#0b0b0d] p-1" />;
+  return <div ref={host} className="h-full w-full bg-[#0a0a0a] p-1" />;
 }
