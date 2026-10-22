@@ -12,41 +12,44 @@
 @layer base {
   :root,
   [data-theme="dark"] {
-    --canvas: 10 10 12;
-    --surface: 20 20 23;
-    --raised: 32 32 36;
-    --line: 44 44 50;
+    /* Neutral near-black, white text, white accent — no green or gold. */
+    --canvas: 10 10 10;
+    --surface: 20 20 20;
+    --raised: 30 30 32;
+    --line: 46 46 50;
 
-    --fg: 245 245 247;
-    --fg-muted: 163 163 173;
-    --fg-subtle: 118 118 128;
-    --fg-faint: 88 88 98;
+    --fg: 244 244 245;
+    --fg-muted: 161 161 170;
+    --fg-subtle: 120 120 128;
+    --fg-faint: 82 82 91;
 
-    --accent: 34 211 238;
-    --accent-fg: 10 10 12;
-    --ok: 52 211 153;
-    --warn: 251 191 36;
+    --accent: 228 228 231;
+    --accent-fg: 10 10 10;
+    --ok: 74 222 128;
+    /* Orange rather than amber, so warnings stay distinct. */
+    --warn: 251 146 60;
     --danger: 248 113 113;
 
     color-scheme: dark;
   }
 
   [data-theme="light"] {
-    --canvas: 250 250 251;
+    /* White surfaces, green ink, gold accent. */
+    --canvas: 250 251 248;
     --surface: 255 255 255;
-    --raised: 244 244 246;
-    --line: 226 226 231;
+    --raised: 240 245 239;
+    --line: 218 228 219;
 
-    --fg: 24 24 27;
-    --fg-muted: 90 90 100;
-    --fg-subtle: 122 122 134;
-    --fg-faint: 155 155 168;
+    --fg: 16 38 27;
+    --fg-muted: 66 92 76;
+    --fg-subtle: 104 126 112;
+    --fg-faint: 146 162 151;
 
-    /* Darker than the dark theme's accent: cyan-400 on white is unreadable. */
-    --accent: 8 145 178;
+    /* Darker than the dark theme's gold: bright gold on white is unreadable. */
+    --accent: 146 108 10;
     --accent-fg: 255 255 255;
-    --ok: 5 150 105;
-    --warn: 180 120 10;
+    --ok: 21 128 61;
+    --warn: 194 65 12;
     --danger: 220 38 38;
 
     color-scheme: light;
@@ -133,10 +136,10 @@
 .composer-actions { display: flex; align-items: center; gap: 6px; margin-left: auto; align-self: flex-end; }
 
 
-.voice-stage { --voice-hue: 111 158 238; position: relative; flex: 1; min-height: 360px; overflow: hidden; isolation: isolate; background: radial-gradient(ellipse at 50% 45%, rgb(var(--voice-hue) / .055), transparent 62%), rgb(var(--canvas)); }
-.voice-stage[data-mode="input"] { --voice-hue: 63 225 198; }
-.voice-stage[data-mode="output"] { --voice-hue: 164 139 255; }
-.voice-stage[data-mode="muted"] { --voice-hue: 115 130 151; }
+.voice-stage { --voice-hue: 228 228 231; position: relative; flex: 1; min-height: 360px; overflow: hidden; isolation: isolate; background: radial-gradient(ellipse at 50% 45%, rgb(var(--voice-hue) / .055), transparent 62%), rgb(var(--canvas)); }
+.voice-stage[data-mode="input"] { --voice-hue: 255 255 255; }
+.voice-stage[data-mode="output"] { --voice-hue: 212 212 216; }
+.voice-stage[data-mode="muted"] { --voice-hue: 113 113 122; }
 .voice-stage-header { position: absolute; inset: 0 0 auto; display: flex; align-items: center; justify-content: space-between; padding: 20px 26px; z-index: 5; }
 .voice-stage-session { color: rgb(var(--fg-faint)); font-size: 11px; max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .voice-utilities { display: flex; gap: 6px; }
@@ -157,13 +160,13 @@
 .voice-end { color: #edaaaa; background: #ba4b4b12; border-color: #db787826; }
 .voice-live-transcript { max-width: 440px; max-height: 66px; margin: 18px 12px 0; color: rgb(var(--fg-muted)); font-size: 14px; line-height: 1.55; text-align: center; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 .voice-stage-error { position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); width: min(430px, 90%); color: rgb(var(--danger)); font-size: 12px; text-align: center; z-index: 6; }
-.voice-browser-window, .voice-terminal-window { position: absolute; z-index: 2; overflow: hidden; border: 1px solid rgb(var(--line)); border-radius: 18px; background: #0b0b0d; box-shadow: 0 30px 90px #0005, 0 2px 10px #0003; display: flex; flex-direction: column; opacity: 0; visibility: hidden; pointer-events: none; transition: transform .7s cubic-bezier(.22,1,.36,1), left .7s cubic-bezier(.22,1,.36,1), top .7s cubic-bezier(.22,1,.36,1), width .7s cubic-bezier(.22,1,.36,1), height .7s cubic-bezier(.22,1,.36,1), opacity .4s, visibility .7s; }
+.voice-browser-window, .voice-terminal-window { position: absolute; z-index: 2; overflow: hidden; border: 1px solid rgb(var(--line)); border-radius: 18px; background: #0a0a0a; box-shadow: 0 30px 90px #0005, 0 2px 10px #0003; display: flex; flex-direction: column; opacity: 0; visibility: hidden; pointer-events: none; transition: transform .7s cubic-bezier(.22,1,.36,1), left .7s cubic-bezier(.22,1,.36,1), top .7s cubic-bezier(.22,1,.36,1), width .7s cubic-bezier(.22,1,.36,1), height .7s cubic-bezier(.22,1,.36,1), opacity .4s, visibility .7s; }
 .voice-browser-window { left: 50%; top: 47%; width: min(1000px, calc(100% - 64px)); height: calc(100% - 164px); transform: translate(-50%, -42%) scale(.92); }
 .voice-browser-window > header, .voice-terminal-window > header { flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; height: 42px; padding: 0 10px 0 16px; border-bottom: 1px solid rgb(var(--line)); background: rgb(var(--surface)); color: rgb(var(--fg-subtle)); font-size: 11px; }
 .voice-browser-window header > span, .voice-terminal-window header > span { display: flex; align-items: center; gap: 8px; }
 .voice-browser-window header > div, .voice-terminal-window header > div { display: flex; gap: 2px; }
-.voice-browser-window header i { width: 5px; height: 5px; border-radius: 50%; background: #3fe1c6; }
-.voice-browser-window iframe { width: 100%; flex: 1; min-height: 0; border: 0; background: #0b0b0d; }
+.voice-browser-window header i { width: 5px; height: 5px; border-radius: 50%; background: #e4e4e7; }
+.voice-browser-window iframe { width: 100%; flex: 1; min-height: 0; border: 0; background: #0a0a0a; }
 .voice-browser-window:fullscreen { width: 100vw; height: 100vh; inset: 0; transform: none; border-radius: 0; }
 .is-browsing .voice-browser-window { opacity: 1; visibility: visible; pointer-events: auto; transform: translate(-50%, -50%) scale(1); }
 .is-browsing .voice-presence { left: calc(100% - 156px); top: calc(100% - 48px); width: 268px; max-width: none; height: 68px; flex-direction: row; border-radius: 22px; background: rgb(var(--surface) / .8); border: 1px solid rgb(var(--line) / .55); backdrop-filter: blur(20px); padding: 0 12px 0 0; }
@@ -179,13 +182,13 @@
 .is-terminal .voice-status { margin-top: -12px; font-size: 11px; }
 .is-terminal .voice-stage-controls { margin-top: 22px; gap: 10px; }
 .is-terminal .voice-stage-action { width: 38px; height: 38px; }
-.voice-terminal-output { min-height: 0; flex: 1; overflow: auto; padding: 20px; color: #c4c8d2; font: 12px/1.65 ui-monospace, SFMono-Regular, Menlo, monospace; }
+.voice-terminal-output { min-height: 0; flex: 1; overflow: auto; padding: 20px; color: #d4d4d8; font: 12px/1.65 ui-monospace, SFMono-Regular, Menlo, monospace; }
 .voice-terminal-run + .voice-terminal-run { margin-top: 24px; }
-.voice-terminal-command { display: flex; gap: 10px; align-items: baseline; color: #e6e9ef; }
-.voice-terminal-command > span { color: #3fe1c6; }
+.voice-terminal-command { display: flex; gap: 10px; align-items: baseline; color: #f4f4f5; }
+.voice-terminal-command > span { color: #e4e4e7; }
 .voice-terminal-command code { white-space: pre-wrap; overflow-wrap: anywhere; }
-.voice-terminal-command i { flex-shrink: 0; width: 5px; height: 5px; border-radius: 50%; background: #3fe1c6; animation: voice-pulse 1s ease-in-out infinite alternate; }
-.voice-terminal-output pre { white-space: pre-wrap; overflow-wrap: anywhere; margin-top: 10px; color: #a6adbc; }
+.voice-terminal-command i { flex-shrink: 0; width: 5px; height: 5px; border-radius: 50%; background: #e4e4e7; animation: voice-pulse 1s ease-in-out infinite alternate; }
+.voice-terminal-output pre { white-space: pre-wrap; overflow-wrap: anywhere; margin-top: 10px; color: #a1a1aa; }
 .voice-terminal-output pre.is-error { color: #eda6a6; }
 @keyframes voice-pulse { to { opacity: .25; } }
 .is-browsing.is-terminal .voice-browser-window { left: 35%; width: calc(70% - 42px); }
@@ -225,10 +228,10 @@
 .voice-stage .voice-browser-window:fullscreen { width: 100vw; height: 100vh; left: 0; top: 0; right: auto; transform: none; border-radius: 0; }
 
 .voice-tool-activity { position: absolute; z-index: 5; top: 72px; left: 24px; width: min(310px, calc(100% - 48px)); display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
-.voice-tool-float { display: flex; align-items: flex-start; gap: 10px; padding: 12px 15px; border: 1px solid rgba(148,163,184,.18); border-radius: 16px; background: rgba(24,31,45,.78); color: #e2e8f0; box-shadow: 0 12px 30px rgba(0,0,0,.12); backdrop-filter: blur(18px); animation: voice-tool-drift 8s ease both; }
-.voice-tool-float > svg { color: #75decf; flex-shrink: 0; margin-top: 2px; }
+.voice-tool-float { display: flex; align-items: flex-start; gap: 10px; padding: 12px 15px; border: 1px solid rgba(255,255,255,.12); border-radius: 16px; background: rgba(20,20,20,.78); color: #f4f4f5; box-shadow: 0 12px 30px rgba(0,0,0,.12); backdrop-filter: blur(18px); animation: voice-tool-drift 8s ease both; }
+.voice-tool-float > svg { color: #e4e4e7; flex-shrink: 0; margin-top: 2px; }
 .voice-tool-float span { font-size: 12px; font-weight: 500; }
-.voice-tool-float p { margin: 3px 0 0; font-size: 11px; line-height: 1.5; color: #9cabc0; overflow-wrap: anywhere; }
+.voice-tool-float p { margin: 3px 0 0; font-size: 11px; line-height: 1.5; color: #a1a1aa; overflow-wrap: anywhere; }
 .voice-stage.is-browsing .voice-tool-activity, .voice-stage.is-terminal .voice-tool-activity { top: auto; bottom: 22px; left: 22px; width: min(280px, calc(100% - 44px)); }
 @keyframes voice-tool-drift { 0% { opacity: 0; transform: translateY(16px) scale(.96); } 8%, 65% { opacity: 1; transform: translateY(0) scale(1); } 100% { opacity: 0; transform: translateY(-24px) scale(.98); } }
 @media (prefers-reduced-motion: reduce) { .voice-tool-float { animation: none; } }
@@ -238,15 +241,15 @@
 .voice-stage:is(.is-browsing, .is-terminal) .voice-presence {
   left: 50%; top: calc(100% - 50px); width: 520px; max-width: calc(100% - 32px);
   height: 80px; flex-direction: row; border-radius: 26px; padding: 0 14px 0 0;
-  background: rgba(23, 36, 56, .96); border: 1px solid rgba(153, 193, 244, .4);
-  box-shadow: 0 8px 32px rgba(0,0,0,.3), 0 0 24px rgba(95,160,255,.12);
+  background: rgba(16, 36, 25, .96); border: 1px solid rgba(212, 175, 55, .4);
+  box-shadow: 0 8px 32px rgba(0,0,0,.3), 0 0 24px rgba(212,175,55,.12);
   backdrop-filter: blur(20px);
 }
 .voice-stage:is(.is-browsing, .is-terminal) .voice-avatar { width: 100px; flex-shrink: 0; }
-.voice-stage:is(.is-browsing, .is-terminal) .voice-status { margin: 0; font-size: 11px; flex: 1; white-space: normal; line-height: 1.3; color: #edf5ff; }
+.voice-stage:is(.is-browsing, .is-terminal) .voice-status { margin: 0; font-size: 11px; flex: 1; white-space: normal; line-height: 1.3; color: #f4f4f5; }
 .voice-stage:is(.is-browsing, .is-terminal) .voice-status > span { display: none; }
 .voice-stage:is(.is-browsing, .is-terminal) .voice-stage-controls { margin: 0 0 0 10px; gap: 6px; }
-.voice-stage:is(.is-browsing, .is-terminal) .voice-stage-action { width: 32px; height: 32px; color: #edf5ff; background: rgba(255,255,255,.09); }
+.voice-stage:is(.is-browsing, .is-terminal) .voice-stage-action { width: 32px; height: 32px; color: #f4f4f5; background: rgba(255,255,255,.09); }
 .voice-stage:is(.is-browsing, .is-terminal) .voice-stage-action svg { width: 16px; height: 16px; }
 @media (min-width: 601px) {
   .voice-stage.is-terminal:not(.is-browsing) .voice-terminal-window { top: 47%; height: calc(100% - 164px); }
@@ -257,34 +260,34 @@
 
 /* Readable voice chrome in both full and compact layouts. */
 .voice-stage-session { color: rgb(var(--fg)); font-size: 12px; font-weight: 500; }
-.voice-status { color: #f1f6ff; font-size: 13px; font-weight: 500; padding: 7px 12px; border-radius: 20px; background: #192639; border: 1px solid #526b8c; }
+.voice-status { color: #f4f4f5; font-size: 13px; font-weight: 500; padding: 7px 12px; border-radius: 20px; background: #18181b; border: 1px solid #3f3f46; }
 .voice-status > span { width: 6px; height: 6px; }
-.voice-stage-action { color: #f1f6ff; background: #263b56; border-color: #7793b5; box-shadow: 0 3px 12px #0003; }
+.voice-stage-action { color: #f4f4f5; background: #27272a; border-color: #52525b; box-shadow: 0 3px 12px #0003; }
 .voice-stage-action svg { stroke-width: 2; }
-.voice-stage-action:hover { background: #365477; }
-.voice-stage-action.is-muted, .voice-stage:is(.is-browsing, .is-terminal) .voice-stage-action.is-muted { color: #fff2d2; background: #614721; border-color: #d8ad62; }
+.voice-stage-action:hover { background: #3f3f46; }
+.voice-stage-action.is-muted, .voice-stage:is(.is-browsing, .is-terminal) .voice-stage-action.is-muted { color: #fafafa; background: #3f3f46; border-color: #a1a1aa; }
 .voice-stage-action.voice-end, .voice-stage:is(.is-browsing, .is-terminal) .voice-stage-action.voice-end { color: #ffe5e5; background: #743d47; border-color: #c88490; }
 .voice-stage-action.voice-end:hover { background: #92505c; }
 .voice-utilities button, .voice-browser-window header button, .voice-terminal-window header button { color: rgb(var(--fg)); background: rgb(var(--fg) / .09); border: 1px solid rgb(var(--fg) / .3); }
 .voice-utilities button:hover, .voice-browser-window header button:hover, .voice-terminal-window header button:hover { background: rgb(var(--fg) / .18); }
-.voice-stage button:focus-visible { outline: 2px solid #a2d5ff; outline-offset: 4px; }
+.voice-stage button:focus-visible { outline: 2px solid #f4f4f5; outline-offset: 4px; }
 .voice-live-transcript { color: rgb(var(--fg)); }
-.voice-browser-window, .voice-terminal-window { border-color: #62718a; }
-.voice-browser-window > header, .voice-terminal-window > header { color: rgb(var(--fg)); font-weight: 500; border-bottom-color: #62718a; }
-.voice-terminal-output pre { color: #d6dfed; }
-.voice-tool-float { background: #1d2c40; border-color: #647a98; }
-.voice-tool-float p { color: #ccd8e9; }
+.voice-browser-window, .voice-terminal-window { border-color: #3f3f46; }
+.voice-browser-window > header, .voice-terminal-window > header { color: rgb(var(--fg)); font-weight: 500; border-bottom-color: #3f3f46; }
+.voice-terminal-output pre { color: #e4e4e7; }
+.voice-tool-float { background: #18181b; border-color: #3f3f46; }
+.voice-tool-float p { color: #d4d4d8; }
 .voice-stage-error { color: #ffe5e5; background: #743d47; border: 1px solid #c88490; border-radius: 12px; padding: 8px 12px; }
 .voice-stage:is(.is-browsing, .is-terminal) .voice-status { padding: 0; background: transparent; border: 0; }
-.voice-stage:is(.is-browsing, .is-terminal) .voice-stage-action { background: #324b69; border-color: #7793b5; }
+.voice-stage:is(.is-browsing, .is-terminal) .voice-stage-action { background: #27272a; border-color: #52525b; }
 
 /* Overscan the canvas so the halo fades out beyond the orb's layout box. */
 .voice-avatar { position: relative; aspect-ratio: 1; overflow: visible; }
 .voice-orb { position: absolute; left: -21.428571%; top: -21.428571%; width: 142.857143%; max-width: none; pointer-events: none; }
 .voice-dock-center { display: contents; }
 .voice-stage:is(.is-browsing, .is-terminal) .voice-dock-center { display: flex; flex: 1; min-width: 0; flex-direction: column; justify-content: center; gap: 4px; }
-.voice-stage:is(.is-browsing, .is-terminal) .voice-dock-center .voice-status { flex: none; justify-content: flex-start; font-size: 10px; color: #acc9ee; }
-.voice-thought-stream { height: 34px; overflow: hidden; overflow-wrap: anywhere; white-space: pre-wrap; color: #edf5ff; font-size: 12px; line-height: 17px; mask-image: linear-gradient(to bottom, #0008, #000 7px); }
+.voice-stage:is(.is-browsing, .is-terminal) .voice-dock-center .voice-status { flex: none; justify-content: flex-start; font-size: 10px; color: #d4d4d8; }
+.voice-thought-stream { height: 34px; overflow: hidden; overflow-wrap: anywhere; white-space: pre-wrap; color: #f4f4f5; font-size: 12px; line-height: 17px; mask-image: linear-gradient(to bottom, #0008, #000 7px); }
 .voice-stage:is(.is-browsing, .is-terminal) .voice-stage-controls { flex-shrink: 0; }
 @media (max-width: 600px) { .voice-stage:is(.is-browsing, .is-terminal) .voice-avatar { width: 76px; } }
 
@@ -344,7 +347,7 @@
   .voice-stage[data-panels="1"] .voice-avatar { width: 100%; }
   .voice-stage[data-panels="1"] .voice-dock-center { display: contents; }
   .voice-stage[data-panels="1"] .voice-thought-stream { display: none; }
-  .voice-stage[data-panels="1"] .voice-status { flex: none; margin-top: -12px; padding: 7px 12px; font-size: 12px; border-radius: 20px; background: #192639; border: 1px solid #526b8c; }
+  .voice-stage[data-panels="1"] .voice-status { flex: none; margin-top: -12px; padding: 7px 12px; font-size: 12px; border-radius: 20px; background: #18181b; border: 1px solid #3f3f46; }
   .voice-stage[data-panels="1"] .voice-stage-controls { margin: 20px 0 0; gap: 12px; }
   .voice-stage[data-panels="1"] .voice-stage-action { width: 42px; height: 42px; }
   .voice-stage[data-panels="1"] .voice-terminal-window,
@@ -386,13 +389,13 @@
 .activity-progress-track > .activity-progress-indeterminate { width: 35%; animation: progress-travel 1.8s ease-in-out infinite; }
 .activity-progress p { font-size: 11px; opacity: .75; margin-top: 8px; }
 /* Voice progress belongs to the orb, with the same reactive light and no nested card. */
-.activity-progress-compact { width: min(280px, 100%); min-width: 0; margin: 0; padding: 8px 4px; border: 0; border-radius: 0; background: transparent; color: #edf5ff; }
+.activity-progress-compact { width: min(280px, 100%); min-width: 0; margin: 0; padding: 8px 4px; border: 0; border-radius: 0; background: transparent; color: #f4f4f5; }
 .activity-progress-compact .activity-progress-heading { font-size: 11px; font-weight: 500; gap: 12px; }
 .activity-progress-compact .activity-progress-heading > span:first-child { display: flex; align-items: center; gap: 7px; }
 .activity-progress-compact .activity-progress-heading > span:first-child::before { content: ''; flex: 0 0 5px; height: 5px; border-radius: 50%; background: rgb(var(--voice-hue)); box-shadow: 0 0 10px rgb(var(--voice-hue) / .8); }
-.activity-progress-compact .activity-progress-heading > span:last-child { color: #b8cce5; font-size: 10px; opacity: 1; }
+.activity-progress-compact .activity-progress-heading > span:last-child { color: #a1a1aa; font-size: 10px; opacity: 1; }
 .activity-progress-compact .activity-progress-track { height: 3px; margin-top: 10px; background: rgb(var(--voice-hue) / .13); box-shadow: 0 0 12px rgb(var(--voice-hue) / .08); }
-.activity-progress-compact .activity-progress-track > div { background: linear-gradient(90deg, rgb(var(--voice-hue) / .55), #d8eeff); box-shadow: 0 0 9px rgb(var(--voice-hue) / .65); }
+.activity-progress-compact .activity-progress-track > div { background: linear-gradient(90deg, rgb(var(--voice-hue) / .55), #ffffff); box-shadow: 0 0 9px rgb(var(--voice-hue) / .65); }
 .voice-dock-center:has(.activity-progress) { width: min(280px, 100%); }
 @keyframes progress-travel { from { transform: translateX(-100%); } to { transform: translateX(390%); } }
 @media (prefers-reduced-motion: reduce) { .activity-progress-track > .activity-progress-indeterminate { animation: none; width: 100%; opacity: .5; } }
@@ -402,3 +405,153 @@
 .voice-profile p {margin:10px 0;color:rgb(var(--fg-muted));}
 .voice-profile table {width:100%;margin:12px 0;}.voice-profile td{padding:5px 3px;border-bottom:1px solid rgb(var(--line));}.voice-profile td:not(:first-child){text-align:right;white-space:nowrap;}
 .voice-profile pre {white-space:pre-wrap;font-size:10px;max-height:160px;overflow:auto;}.voice-profile button{padding:6px 10px;border:1px solid rgb(var(--line));border-radius:8px;}
+
+/*
+ * Gold, green and white.
+ *
+ * The page sits on a slow ambient wash — gold light from the top right, green
+ * from the bottom left — and the chrome above it is frosted glass, so the
+ * colour reads through every panel without competing with the content.
+ */
+:root, [data-theme="dark"] {
+  /* Dark theme keeps the names but goes neutral: white/grey, a barely-there wash. */
+  --gold: 228 228 231;
+  --gold-soft: 250 250 250;
+  --green: 113 113 122;
+  --green-deep: 0 0 0;
+  --glow-gold: .04;
+  --glow-green: .04;
+  --glass: 20 20 20;
+  --glass-alpha: .7;
+}
+[data-theme="light"] {
+  --gold: 196 150 30;
+  --gold-soft: 232 196 92;
+  --green: 22 128 70;
+  --green-deep: 210 234 218;
+  --glow-gold: .2;
+  --glow-green: .16;
+  --glass: 255 255 255;
+  --glass-alpha: .72;
+}
+
+/* Transparent so the fixed wash below (painted behind body) shows; html keeps the solid canvas. */
+body { background: transparent; }
+body::before {
+  content: ""; position: fixed; inset: -10%; z-index: -1; pointer-events: none;
+  background:
+    radial-gradient(42% 38% at 88% 6%, rgb(var(--gold) / var(--glow-gold)), transparent 70%),
+    radial-gradient(46% 42% at 6% 96%, rgb(var(--green) / var(--glow-green)), transparent 70%),
+    radial-gradient(30% 30% at 55% 55%, rgb(var(--gold-soft) / calc(var(--glow-gold) * .35)), transparent 70%),
+    linear-gradient(160deg, rgb(var(--canvas)), rgb(var(--green-deep) / .35) 100%);
+  animation: ambient-drift 28s ease-in-out infinite alternate;
+}
+/* A faint dot grid gives the wash some texture without adding noise. */
+body::after {
+  content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background-image: radial-gradient(rgb(var(--fg) / .045) 1px, transparent 1px);
+  background-size: 22px 22px;
+  mask-image: radial-gradient(ellipse at 50% 40%, #000 30%, transparent 80%);
+}
+@keyframes ambient-drift { to { transform: translate3d(-2%, 2%, 0) scale(1.04); } }
+@media (prefers-reduced-motion: reduce) { body::before { animation: none; } }
+
+.app-shell { position: relative; isolation: isolate; background: transparent; }
+
+.glass {
+  background: rgb(var(--glass) / var(--glass-alpha));
+  backdrop-filter: blur(22px) saturate(1.4);
+  -webkit-backdrop-filter: blur(22px) saturate(1.4);
+}
+.sidebar-glass { position: relative; }
+/* A hairline of gold fading to green along the sidebar's edge. */
+.sidebar-glass::after {
+  content: ""; position: absolute; top: 0; right: -1px; bottom: 0; width: 1px; pointer-events: none;
+  background: linear-gradient(to bottom, transparent, rgb(var(--gold) / .55) 25%, rgb(var(--green) / .45) 75%, transparent);
+}
+
+.text-gradient {
+  background: linear-gradient(115deg, rgb(var(--gold-soft)), rgb(var(--gold)) 40%, rgb(var(--green)) 100%);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+[data-theme="light"] .text-gradient { background-image: linear-gradient(115deg, rgb(var(--gold)), rgb(150 110 12) 45%, rgb(var(--green))); }
+
+.btn-gold {
+  background: linear-gradient(135deg, rgb(var(--gold-soft)), rgb(var(--gold)) 55%, rgb(var(--gold)));
+  color: rgb(10 10 10);
+  box-shadow: 0 6px 20px -8px rgb(var(--gold) / .7), inset 0 1px 0 rgb(255 255 255 / .35);
+  transition: transform .18s, box-shadow .18s, filter .18s;
+}
+.btn-gold:hover:not(:disabled) { filter: brightness(1.06); box-shadow: 0 10px 28px -10px rgb(var(--gold) / .85), inset 0 1px 0 rgb(255 255 255 / .4); transform: translateY(-1px); }
+.btn-gold:active:not(:disabled) { transform: translateY(0) scale(.98); }
+
+/* Navigation: the active row gets a gold-to-green tint and a glowing rail. */
+.nav-active {
+  background: linear-gradient(90deg, rgb(var(--gold) / .16), rgb(var(--green) / .08) 70%, transparent);
+  box-shadow: inset 0 0 0 1px rgb(var(--gold) / .14);
+}
+.nav-active .nav-rail { box-shadow: 0 0 10px rgb(var(--gold) / .9); }
+
+/* Messages. */
+.bubble-user {
+  background: linear-gradient(135deg, rgb(var(--gold) / .17), rgb(var(--green) / .12));
+  box-shadow: inset 0 0 0 1px rgb(var(--gold) / .22), 0 4px 18px -10px rgb(var(--gold) / .5);
+}
+
+/* The composer: glass, with a gold-green ring that lights up on focus. */
+.prompt-shell {
+  background: rgb(var(--glass) / calc(var(--glass-alpha) + .12));
+  backdrop-filter: blur(20px) saturate(1.3);
+  -webkit-backdrop-filter: blur(20px) saturate(1.3);
+  border-color: rgb(var(--gold) / .22);
+  box-shadow: 0 10px 40px -18px rgb(0 0 0 / .45), inset 0 1px 0 rgb(255 255 255 / .05);
+}
+.prompt-shell:focus-within {
+  border-color: rgb(var(--gold) / .55);
+  box-shadow: 0 0 0 4px rgb(var(--gold) / .1), 0 14px 44px -18px rgb(var(--green) / .55);
+}
+.prompt-send { background: linear-gradient(135deg, rgb(var(--gold-soft)), rgb(var(--gold))); color: rgb(10 10 10); border-color: transparent; box-shadow: 0 4px 14px -6px rgb(var(--gold) / .8); }
+.prompt-send:hover { background: linear-gradient(135deg, rgb(var(--gold-soft)), rgb(var(--gold-soft))); color: rgb(10 10 10); }
+
+/* "Kratos is working": a pill whose label shimmers gold while the agent runs. */
+.working-pill {
+  display: inline-flex; align-items: center; gap: 8px; padding: 5px 12px 5px 8px; border-radius: 999px;
+  background: linear-gradient(90deg, rgb(var(--gold) / .12), rgb(var(--green) / .1));
+  box-shadow: inset 0 0 0 1px rgb(var(--gold) / .25);
+}
+.working-orb { position: relative; width: 14px; height: 14px; border-radius: 50%; background: conic-gradient(from 0deg, rgb(var(--gold)), rgb(var(--green)), rgb(var(--gold-soft)), rgb(var(--gold))); animation: working-spin 1.4s linear infinite; }
+.working-orb::after { content: ""; position: absolute; inset: 3px; border-radius: 50%; background: rgb(var(--surface)); }
+.working-shimmer {
+  font-weight: 600;
+  background: linear-gradient(90deg, rgb(var(--gold)) 0%, rgb(var(--gold-soft)) 30%, rgb(var(--fg)) 50%, rgb(var(--gold-soft)) 70%, rgb(var(--gold)) 100%);
+  background-size: 200% 100%; -webkit-background-clip: text; background-clip: text; color: transparent;
+  animation: working-shimmer 2.4s linear infinite;
+}
+@keyframes working-spin { to { transform: rotate(360deg); } }
+@keyframes working-shimmer { to { background-position: -200% 0; } }
+@media (prefers-reduced-motion: reduce) { .working-orb, .working-shimmer { animation: none; } }
+
+/* Empty states: the logo floats on a gold-and-green halo. */
+.hero-halo { position: relative; display: grid; place-items: center; }
+.hero-halo::before {
+  content: ""; position: absolute; inset: -40%; border-radius: 50%; z-index: -1;
+  background: radial-gradient(circle, rgb(var(--gold) / .35), rgb(var(--green) / .18) 45%, transparent 70%);
+  filter: blur(14px); animation: halo-breathe 5s ease-in-out infinite;
+}
+@keyframes halo-breathe { 50% { transform: scale(1.12); opacity: .75; } }
+@media (prefers-reduced-motion: reduce) { .hero-halo::before { animation: none; } }
+
+.card-glass {
+  background: rgb(var(--glass) / var(--glass-alpha));
+  backdrop-filter: blur(24px) saturate(1.4); -webkit-backdrop-filter: blur(24px) saturate(1.4);
+  border: 1px solid rgb(var(--gold) / .18);
+  box-shadow: 0 30px 80px -30px rgb(0 0 0 / .5), inset 0 1px 0 rgb(255 255 255 / .06);
+}
+
+::selection { background-color: rgb(var(--gold) / .3); }
+:focus-visible { outline-color: rgb(var(--gold) / .7); }
+::-webkit-scrollbar-thumb { background-color: rgb(var(--gold) / .22); }
+::-webkit-scrollbar-thumb:hover { background-color: rgb(var(--gold) / .45); }
+
+/* Let the ambient wash show behind the voice stage too. */
+.voice-stage { background: radial-gradient(ellipse at 50% 45%, rgb(var(--voice-hue) / .09), transparent 62%), transparent; }

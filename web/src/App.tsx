@@ -13,6 +13,8 @@ import { RoutinesPage } from "./components/RoutinesPage";
 import { AuditPage } from "./components/AuditPanel";
 import { BrowserPage } from "./components/BrowserPage";
 import { ThemeSwitcher } from "./components/ThemeSwitcher";
+import { DashboardPage } from "./components/DashboardPage";
+import { JobsPage } from "./components/JobsPage";
 
 // Legacy routes ("session", "global") still resolve — old links stay valid.
 type Tab = "general" | "extensions" | "advanced";
@@ -54,6 +56,9 @@ export default function App() {
       <Route path="/routines" element={<Shell view="routines" />} />
       <Route path="/browser" element={<Shell view="browser" />} />
       <Route path="/audit" element={<Shell view="audit" />} />
+      <Route path="/dashboard" element={<Shell view="dashboard" />} />
+      <Route path="/jobs" element={<Shell view="jobs" />} />
+      <Route path="/jobs/:jobId" element={<Shell view="jobs" />} />
       <Route path="/s/:sessionId" element={<Shell />} />
       <Route path="/s/:sessionId/settings" element={<Shell settings />} />
       <Route path="/s/:sessionId/settings/:tab" element={<Shell settings />} />
@@ -69,9 +74,9 @@ function Shell({
   view = "chat",
 }: {
   settings?: boolean;
-  view?: "chat" | "sessions" | "agent" | "routines" | "browser" | "audit";
+  view?: "chat" | "sessions" | "agent" | "routines" | "browser" | "audit" | "dashboard" | "jobs";
 }) {
-  const { sessionId, tab } = useParams<{ sessionId?: string; tab?: string }>();
+  const { sessionId, tab, jobId } = useParams<{ sessionId?: string; tab?: string; jobId?: string }>();
   const navigate = useNavigate();
 
   const [sessions, setSessions] = useState<Session[]>([]);
@@ -222,7 +227,7 @@ function Shell({
   const active = listed ?? (other?.id === sessionId ? other : null);
 
   return (
-    <div className="flex h-screen bg-canvas">
+    <div className="app-shell flex h-screen">
       <Sidebar
         sessions={sessions}
         workspaces={workspaces}
@@ -275,6 +280,19 @@ function Shell({
               await api.pinSession(id, pinned);
               refreshSessions();
             }}
+            onRename={async (id, title) => {
+              await api.renameSession(id, title);
+              refreshSessions();
+            }}
+          />
+        ) : view === "dashboard" ? (
+          <DashboardPage onOpenJob={(id) => navigate(`/jobs/${id}`)} />
+        ) : view === "jobs" ? (
+          <JobsPage
+            jobId={jobId ?? null}
+            onSelectJob={(id) => navigate(id ? `/jobs/${id}` : "/jobs")}
+            onOpenChat={(id) => navigate(`/s/${id}`)}
+            onRenamed={() => void refreshSessions().catch(() => {})}
           />
         ) : view === "agent" ? (
           <AgentPage onSelect={(id) => navigate(`/s/${id}`)} />
@@ -311,6 +329,12 @@ function Shell({
             onAbort={async () => {
               await api.abort(active.id);
               refreshSessions();
+            }}
+            onRename={async (title) => {
+              const renamed = await api.renameSession(active.id, title);
+              // Agent and routine sessions are not in the task list.
+              setOther((prev) => (prev?.id === renamed.id ? { ...prev, title: renamed.title } : prev));
+              await refreshSessions();
             }}
             onClientCommand={async (name, args) => {
               if (name === "settings") {
@@ -351,13 +375,14 @@ function Shell({
 function EmptyState({ hasSessions }: { hasSessions: boolean }) {
   return (
     <div className="flex h-full flex-col items-center justify-center gap-2 text-center">
-      <div className="grid h-12 w-12 place-items-center rounded-2xl bg-surface text-xl text-fg-faint">
-        π
+      <div className="hero-halo mb-4">
+        <img src="/logo-192.png" alt="" className="h-16 w-16 rounded-2xl object-contain shadow-xl ring-1 ring-accent/30" draggable={false} />
       </div>
+      <h2 className="text-gradient text-2xl font-semibold tracking-tight">Welcome to Kratos</h2>
       <p className="text-sm text-fg-muted">
         {hasSessions ? "Pick a session on the left." : "Start a session to get going."}
       </p>
-      <p className="max-w-xs text-xs text-fg-faint">
+      <p className="max-w-xs text-xs text-fg-subtle">
         Give it a task and close the tab — it keeps working, and picks up where it left off when you
         come back.
       </p>

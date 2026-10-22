@@ -37,6 +37,9 @@ import { peopleRouter } from "./api/people.js";
 import { voiceRouter } from "./api/voice.js";
 import { browserRouter } from "./api/browser.js";
 import { terminalRouter } from "./api/terminal.js";
+import { filesRouter } from "./api/files.js";
+import { insightsRouter } from "./api/insights.js";
+import { backfillGenerations, generationTracker } from "./metrics.js";
 import { attachBrowserUpgrade, mountBrowserProxy } from "./browser-proxy.js";
 import { watchBrowserFrames } from "./extensions/browser-frames.js";
 import { startLlamaProxy } from "./llama-progress.js";
@@ -355,7 +358,14 @@ app.patch("/api/sessions/:id", (req, res) => {
   const session = getSession(req.params.id);
   if (!session) return res.status(404).json({ error: "Not found" });
   const { title, pinned } = req.body ?? {};
-  if (typeof title === "string" && title.trim()) updateSession(session.id, { title: title.trim() });
+  if (title !== undefined) {
+    // Collapsed to one line: a title is a label in a list, and a pasted
+    // paragraph with newlines in it breaks every place that shows one.
+    const clean = typeof title === "string" ? title.replace(/\s+/g, " ").trim() : "";
+    if (!clean) return res.status(400).json({ error: "A session needs a name" });
+    if (clean.length > 200) return res.status(400).json({ error: "Keep the name under 200 characters" });
+    updateSession(session.id, { title: clean });
+  }
   if (typeof pinned === "boolean") updateSession(session.id, { pinned: pinned ? 1 : 0 });
   res.json(toApi(getSession(session.id)!));
 });
@@ -564,7 +574,9 @@ app.use("/api", peopleRouter());
 app.use("/api", browserRouter());
 app.use("/api", voiceRouter());
 app.use("/api", terminalRouter());
+app.use("/api", filesRouter());
 app.use("/api", canvasesRouter());
+app.use("/api", insightsRouter());
 // Before the SPA fallback, which answers everything that is not /api.
 mountBrowserProxy(app);
 
@@ -719,7 +731,16 @@ attachBrowserUpgrade(server);
 watchBrowserFrames();
 // Reports how far llama.cpp has got through a prompt, which is otherwise a
 // silent minute or two before the first token.
-startLlamaProxy((sessionId, prefill) => sessions.reportPrefill(sessionId, prefill));
+startLlamaProxy(
+  (sessionId, prefill) => sessions.reportPrefill(sessionId, prefill),
+  (sessionId, timings) => generationTracker.llamaTimings(sessionId, timings),
+);
+try {
+  const added = backfillGenerations();
+  if (added) console.log(`[metrics] backfilled ${added} generation(s) from the event log`);
+} catch (e) {
+  console.error(`[metrics] backfill failed: ${(e as Error).message}`);
+}
 getDb().prepare("UPDATE canvases SET active_call = NULL, status = 'interrupted', agent_read_revision = revision WHERE active_call IS NOT NULL").run();
 pinConnection();
 

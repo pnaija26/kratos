@@ -60,6 +60,24 @@ A session:
 a pi process is up right now, which is not the same thing — an idle session can
 still be live.
 
+## Workspace files
+
+| | |
+| --- | --- |
+| `GET /api/sessions/:id/files?path=` | `{ path, entries: [{ name, dir, size }] }` — one folder of the session's workspace, folders first |
+| `POST /api/sessions/:id/download` | `{ rules, exclude }` → a zip, streamed. Also accepts the same JSON in a `spec` form field. |
+
+`rules` maps workspace-relative paths to `true` or `false`; each path takes
+the value of its nearest ruled ancestor, and `""` is the workspace itself
+(included unless ruled otherwise). `exclude` is a list of shell-style patterns:
+one without a slash matches a name at any depth (`node_modules`, `*.log`), one
+with a slash matches from the workspace root (`build/cache`). Symlinks are
+skipped.
+
+```json
+{ "rules": { "": false, "src": true, "src/fixtures": false }, "exclude": ["*.log"] }
+```
+
 ## Prompting
 
 | | |

@@ -1,7 +1,11 @@
 import { useState, type ReactNode } from "react";
 import { ThemeSwitcher } from "./ThemeSwitcher";
+import { RenameField } from "./RenameField";
 import {
+  LuActivity,
   LuBot,
+  LuFolderSearch,
+  LuPencil,
   LuPanelLeftClose,
   LuPanelLeftOpen,
   LuClock,
@@ -69,7 +73,7 @@ export function Sidebar({
   executor: string;
   activeId: string | null;
   /** Which top-level destination is showing, so the nav can mark it. */
-  view: "chat" | "sessions" | "agent" | "routines" | "browser" | "audit";
+  view: "chat" | "sessions" | "agent" | "routines" | "browser" | "audit" | "dashboard" | "jobs";
   /** Whether the optional browser service is there at all. */
   hasBrowser: boolean;
   onSelect: (id: string) => void;
@@ -79,7 +83,7 @@ export function Sidebar({
   onPin: (id: string, pinned: boolean) => Promise<void>;
   onCreateWorkspace: (name: string) => Promise<Workspace>;
   onOpenSettings: () => void;
-  onNavigate: (to: "sessions" | "agent" | "routines" | "browser" | "audit") => void;
+  onNavigate: (to: "sessions" | "agent" | "routines" | "browser" | "audit" | "dashboard" | "jobs") => void;
 }) {
   const [collapsed, setCollapsed] = useState(() => localStorage.getItem("sidebarCollapsed") === "true");
   const toggleSidebar = () => {
@@ -134,7 +138,7 @@ export function Sidebar({
   );
 
   return (
-    <aside aria-label="Sidebar" className={`relative flex shrink-0 flex-col overflow-hidden border-r border-line bg-surface transition-[width] duration-300 ease-in-out motion-reduce:transition-none ${collapsed ? "w-12" : "w-64"}`}>
+    <aside aria-label="Sidebar" className={`relative flex shrink-0 flex-col overflow-hidden sidebar-glass glass border-r border-line/40 transition-[width] duration-300 ease-in-out motion-reduce:transition-none ${collapsed ? "w-12" : "w-64"}`}>
       <button type="button" onClick={toggleSidebar} aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
         title={collapsed ? "Expand sidebar" : "Collapse sidebar"} aria-expanded={!collapsed} aria-controls="sidebar-content"
         className="absolute right-2 top-3 z-10 grid h-8 w-8 place-items-center rounded-lg text-fg-subtle transition-colors hover:bg-canvas hover:text-fg focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent">
@@ -146,10 +150,10 @@ export function Sidebar({
         <img
           src="/logo-192.png"
           alt=""
-          className="h-6 w-6 shrink-0 object-contain"
+          className="h-7 w-7 shrink-0 rounded-lg object-contain ring-1 ring-accent/30"
           draggable={false}
         />
-        <h1 className="text-sm font-semibold tracking-tight text-fg">Kratos</h1>
+        <h1 className="text-gradient text-base font-bold tracking-tight">Kratos</h1>
         <span
           className="ml-auto text-[10px] uppercase tracking-wider text-fg-faint"
           title="How sessions are executed"
@@ -166,6 +170,18 @@ export function Sidebar({
           label="Sessions"
           onClick={() => onNavigate("sessions")}
           active={view === "sessions"}
+        />
+        <NavItem
+          icon={<LuFolderSearch />}
+          label="Jobs"
+          onClick={() => onNavigate("jobs")}
+          active={view === "jobs"}
+        />
+        <NavItem
+          icon={<LuActivity />}
+          label="Dashboard"
+          onClick={() => onNavigate("dashboard")}
+          active={view === "dashboard"}
         />
         <NavItem
           icon={<LuBot />}
@@ -317,11 +333,11 @@ function NavItem({
     <button
       onClick={onClick}
       className={`group relative flex w-full items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-left text-sm transition ${
-        active ? "bg-fg/[0.07] text-fg" : "text-fg-muted hover:bg-fg/5 hover:text-fg"
+        active ? "nav-active text-fg" : "text-fg-muted hover:bg-fg/5 hover:text-fg"
       }`}
     >
       <span
-        className={`absolute left-0 top-1/2 h-4 w-0.5 -translate-y-1/2 rounded-r-full bg-accent transition-opacity ${
+        className={`nav-rail absolute left-0 top-1/2 h-4 w-0.5 -translate-y-1/2 rounded-r-full bg-accent transition-opacity ${
           active ? "opacity-100" : "opacity-0"
         }`}
       />
@@ -348,9 +364,10 @@ function SessionItem({
   onDelete: (id: string) => Promise<void>;
   onPin: (id: string, pinned: boolean) => Promise<void>;
 }) {
+  const [renaming, setRenaming] = useState(false);
   return (
     <div
-      onClick={onSelect}
+      onClick={() => !renaming && onSelect()}
       className={`group mb-0.5 cursor-pointer rounded-lg px-2.5 py-1.5 transition ${
         active ? "bg-fg/[0.07]" : "hover:bg-fg/5"
       }`}
@@ -361,17 +378,34 @@ function SessionItem({
           title={STATUS_LABEL[s.status]}
         />
         <span
-          className="truncate text-sm text-fg"
+          className="flex min-w-0 flex-1"
+          title="Double-click to rename"
           onDoubleClick={(e) => {
             e.stopPropagation();
-            const next = prompt("Rename session", s.title);
-            if (next?.trim()) onRename(s.id, next.trim());
+            setRenaming(true);
           }}
         >
-          {s.title}
+          <RenameField
+            value={s.title}
+            editing={renaming}
+            onDone={() => setRenaming(false)}
+            onSave={(title) => onRename(s.id, title)}
+            className="text-sm text-fg"
+          />
         </span>
 
-        <div className="ml-auto hidden shrink-0 items-center gap-0.5 group-hover:flex">
+        <div className={`ml-auto shrink-0 items-center gap-0.5 ${renaming ? "hidden" : "hidden group-hover:flex"}`}>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setRenaming(true);
+            }}
+            className="rounded p-1 text-fg-subtle hover:text-accent"
+            title="Rename"
+            aria-label={`Rename ${s.title}`}
+          >
+            <LuPencil className="h-3 w-3" />
+          </button>
           <button
             onClick={(e) => {
               e.stopPropagation();

@@ -1,0 +1,58 @@
+/* Kratos colours: gold accent, green and white surfaces — same palette as the portal. */
+:root {
+  --vp-c-brand-1: #926c0a;
+  --vp-c-brand-2: #a87d10;
+  --vp-c-brand-3: #b8891a;
+  --vp-c-brand-soft: rgba(212, 175, 55, 0.16);
+
+  --vp-c-bg: #ffffff;
+  --vp-c-bg-alt: #f0f5ef;
+  --vp-c-bg-soft: #f0f5ef;
+  --vp-c-bg-elv: #ffffff;
+  --vp-c-text-1: #10261b;
+  --vp-c-text-2: #425c4c;
+  --vp-c-divider: #dae4db;
+  --vp-c-gutter: #dae4db;
+
+  --vp-c-tip-1: #15803d;
+  --vp-c-tip-2: #16a34a;
+  --vp-c-tip-3: #22c55e;
+  --vp-c-tip-soft: rgba(21, 128, 61, 0.12);
+
+  --vp-home-hero-name-color: transparent;
+  --vp-home-hero-name-background: linear-gradient(120deg, #b8891a 20%, #15803d);
+
+  --vp-button-brand-text: #ffffff;
+  --vp-button-brand-bg: #926c0a;
+  --vp-button-brand-hover-bg: #a87d10;
+  --vp-button-brand-active-bg: #7a5a08;
+}
+
+/* Dark mode stays neutral: near-black surfaces and a white/grey accent, no gold or green. */
+.dark {
+  --vp-c-brand-1: #f4f4f5;
+  --vp-c-brand-2: #d4d4d8;
+  --vp-c-brand-3: #a1a1aa;
+  --vp-c-brand-soft: rgba(244, 244, 245, 0.12);
+
+  --vp-c-bg: #0a0a0a;
+  --vp-c-bg-alt: #111111;
+  --vp-c-bg-soft: #1a1a1a;
+  --vp-c-bg-elv: #141414;
+  --vp-c-text-1: #f4f4f5;
+  --vp-c-text-2: #a1a1aa;
+  --vp-c-divider: #27272a;
+  --vp-c-gutter: #000000;
+
+  --vp-c-tip-1: #e4e4e7;
+  --vp-c-tip-2: #d4d4d8;
+  --vp-c-tip-3: #a1a1aa;
+  --vp-c-tip-soft: rgba(228, 228, 231, 0.1);
+
+  --vp-home-hero-name-background: linear-gradient(120deg, #ffffff 20%, #71717a);
+
+  --vp-button-brand-text: #0a0a0a;
+  --vp-button-brand-bg: #f4f4f5;
+  --vp-button-brand-hover-bg: #ffffff;
+  --vp-button-brand-active-bg: #d4d4d8;
+}

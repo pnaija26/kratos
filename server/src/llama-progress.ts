@@ -2,6 +2,7 @@ import { LlamaSessionCache } from "./llama-session-cache.js";
 import http from "node:http";
 import https from "node:https";
 import type { AddressInfo } from "node:net";
+import type { LlamaTimings } from "./metrics.js";
 
 /**
  * What llama.cpp is doing before the first token arrives.
@@ -29,6 +30,7 @@ export interface Prefill {
 }
 
 type OnProgress = (sessionId: string, prefill: Prefill) => void;
+type OnTimings = (sessionId: string, timings: LlamaTimings) => void;
 
 /** Upstream origin per session, captured when the model is rewritten. */
 const upstreams = new Map<string, string>();
@@ -36,6 +38,7 @@ const upstreams = new Map<string, string>();
 let server: http.Server | undefined;
 let port = 0;
 let notify: OnProgress = () => {};
+let notifyTimings: OnTimings = () => {};
 
 const PREFIX = "/s/";
 const diskCache = new LlamaSessionCache();
@@ -47,6 +50,7 @@ function readProgress(text: string, sessionId: string): void {
     if (!line.startsWith("data:")) continue;
     const body = line.slice(5).trim();
     if (!body || body === "[DONE]") continue;
+    if (body.includes('"timings"')) readTimings(body, sessionId);
     if (!body.includes("prompt_progress")) continue;
     try {
       const chunk = JSON.parse(body) as { prompt_progress?: Record<string, number> };
@@ -62,6 +66,27 @@ function readProgress(text: string, sessionId: string): void {
       // A frame split across two packets. The next one carries the same
       // running total, so nothing is lost by skipping it.
     }
+  }
+}
+
+/**
+ * llama-server's own measurement of the request, on the final chunk: prompt
+ * and generation timed separately. Exact where wall clock can only guess.
+ */
+function readTimings(body: string, sessionId: string): void {
+  try {
+    const t = (JSON.parse(body) as { timings?: Record<string, unknown> }).timings;
+    if (!t || typeof t.predicted_ms !== "number") return;
+    const n = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? v : undefined);
+    notifyTimings(sessionId, {
+      prompt_n: n(t.prompt_n),
+      prompt_ms: n(t.prompt_ms),
+      predicted_n: n(t.predicted_n),
+      predicted_ms: n(t.predicted_ms),
+    });
+  } catch {
+    // A split frame. Missing these costs a fallback to wall clock, not a
+    // wrong number.
   }
 }
 
@@ -142,9 +167,10 @@ function handle(req: http.IncomingMessage, res: http.ServerResponse): void {
 }
 
 /** Loopback only: this exists for the pi process in front of it, nobody else. */
-export function startLlamaProxy(onProgress: OnProgress): void {
+export function startLlamaProxy(onProgress: OnProgress, onTimings?: OnTimings): void {
   if (server) return;
   notify = onProgress;
+  if (onTimings) notifyTimings = onTimings;
   server = http.createServer(handle);
   server.listen(0, "127.0.0.1", () => {
     port = (server!.address() as AddressInfo).port;
