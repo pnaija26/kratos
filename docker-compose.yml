@@ -17,6 +17,10 @@ services:
       PORTAL_CONTAINER_NAME: kratos
       # With host networking the portal binds PORT directly on the host.
       PORT: ${PORT:-4100}
+      # Where apps under development are previewed from, beside the session
+      # building them. Defaults to PORT+1; 0 turns previews off. Must be reachable
+      # from your browser the same way the portal is.
+      PREVIEW_PORT: ${PREVIEW_PORT:-}
       PORTAL_PASSWORD: ${PORTAL_PASSWORD:?set PORTAL_PASSWORD in .env}
       # Keeps logins valid across restarts; generate with: openssl rand -hex 32
       PORTAL_SECRET: ${PORTAL_SECRET:-}

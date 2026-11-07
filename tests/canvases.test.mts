@@ -75,7 +75,7 @@ test('AI can continue its own edits without rereading, including in a resumed co
 });
 
 test('installed agent runtime forwards canvas data and errors to the next model request',async()=>{
- const {runAgentLoop}=await import(new URL('../node_modules/@earendil-works/pi-agent-core/dist/agent-loop.js',import.meta.resolve('@earendil-works/pi-coding-agent')).href);
+ const {runAgentLoop}=await import('@earendil-works/pi-agent-core');
  const {tools}=setup();const created=value(await tools.canvas_create.execute('create',{title:'Visible to model'}));
  let calls=0;
  const stream=async(_model:any,context:any)=>{

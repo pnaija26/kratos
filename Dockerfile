@@ -26,7 +26,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # data volume. Pinned so a rebuild does not silently change the toolchain.
 COPY --from=ghcr.io/astral-sh/uv:0.12.1 /uv /uvx /usr/local/bin/
 
-RUN npm install -g @earendil-works/pi-coding-agent@latest
+# Pinned to the SDK version in server/package.json. @latest was frozen by the
+# layer cache, so the CLI and the in-process SDK drifted apart.
+RUN npm install -g @earendil-works/pi-coding-agent@1.4.0
 
 COPY package.json package-lock.json* ./
 COPY server/package.json server/

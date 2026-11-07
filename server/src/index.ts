@@ -41,6 +41,7 @@ import { filesRouter } from "./api/files.js";
 import { insightsRouter } from "./api/insights.js";
 import { backfillGenerations, generationTracker } from "./metrics.js";
 import { attachBrowserUpgrade, mountBrowserProxy } from "./browser-proxy.js";
+import { previewRouter, startPreviewServer } from "./preview.js";
 import { watchBrowserFrames } from "./extensions/browser-frames.js";
 import { startLlamaProxy } from "./llama-progress.js";
 import { pinConnection } from "./api/browser.js";
@@ -577,6 +578,7 @@ app.use("/api", terminalRouter());
 app.use("/api", filesRouter());
 app.use("/api", canvasesRouter());
 app.use("/api", insightsRouter());
+app.use("/api", previewRouter());
 // Before the SPA fallback, which answers everything that is not /api.
 mountBrowserProxy(app);
 
@@ -727,6 +729,8 @@ const server = (tls ? createHttpsServer(tls, app) : createHttpServer(app)).liste
 );
 
 attachBrowserUpgrade(server);
+// Dev servers in the workspaces, framed beside the session that is building them.
+startPreviewServer(tls);
 // Keeps the agent's browser rendering when nobody has the panel open.
 watchBrowserFrames();
 // Reports how far llama.cpp has got through a prompt, which is otherwise a

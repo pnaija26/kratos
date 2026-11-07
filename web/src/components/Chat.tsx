@@ -6,13 +6,14 @@ import { latestBrowserActivity, latestTerminalActivity } from "../voice-browser"
 import { VoiceControl } from "./VoiceControl";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Streamdown, type DiagramPlugin } from "streamdown";
-import { LuGlobe, LuSquareTerminal, LuSquare, LuFileText, LuArrowUp, LuAudioLines, LuDownload, LuPencil, LuUpload } from "react-icons/lu";
+import { LuAppWindow, LuGlobe, LuSquareTerminal, LuSquare, LuFileText, LuArrowUp, LuAudioLines, LuDownload, LuPencil, LuUpload } from "react-icons/lu";
 import { api, type PiCommand, type PortalEvent, type Session } from "../api";
 import { activity, buildTranscript, type Activity } from "../transcript";
 import { HAS_MERMAID, loadMermaidPlugin } from "../mermaid";
 import { useResolvedTheme } from "../theme";
 import { ComposerBar } from "./ComposerBar";
 import { TerminalPanel } from "./TerminalPanel";
+import { PreviewPanel } from "./PreviewPanel";
 import { DownloadDialog } from "./DownloadDialog";
 import { Modal } from "./Modal";
 import { RenameField } from "./RenameField";
@@ -111,10 +112,15 @@ export function Chat({
   const [browserUp, setBrowserUp] = useState(false);
   const [watching, setWatching] = useState(false);
   const [terminal, setTerminal] = useState(false);
+  const [previewing, setPreviewing] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [importing, setImporting] = useState(false);
   const [renaming, setRenaming] = useState(false);
-  useWorkPanels(!voiceMode && watching, !voiceMode && terminal, canvasOpen, panel => { if(panel === "browser") setWatching(false); else if(panel === "terminal") setTerminal(false); else setCanvasOpen(false); });
+  useWorkPanels(!voiceMode && watching, !voiceMode && terminal, canvasOpen, panel => { if(panel === "browser") setWatching(false); else if(panel === "terminal") setTerminal(false); else if(panel === "preview") setPreviewing(false); else setCanvasOpen(false); }, !voiceMode && previewing);
+  // Up to two of these share the side panel, top to bottom in this order.
+  const panes = [watching && "browser", previewing && "preview", terminal && "terminal"].filter(Boolean);
+  const paneFlex = (pane: string) =>
+    panes.length < 2 ? "1 1 0%" : panes[0] === pane ? `${split} 1 0%` : `${1 - split} 1 0%`;
   const browserPane = useRef<HTMLDivElement>(null);
 
   // Kept across reloads: a width you dragged is a preference, and losing it on
@@ -325,6 +331,17 @@ export function Chat({
               <LuGlobe className="h-3.5 w-3.5" />
             </button>
           )}
+          <button
+            onClick={() => setPreviewing((v) => !v)}
+            title={previewing ? "Hide the preview" : "Preview an app running on this machine"}
+            className={`rounded-lg border px-2 py-1 text-xs transition ${
+              previewing
+                ? "border-accent/40 bg-accent/10 text-accent"
+                : "border-line text-fg-muted hover:bg-fg/5 hover:text-fg"
+            }`}
+          >
+            <LuAppWindow className="h-3.5 w-3.5" />
+          </button>
           <button
             onClick={() => setTerminal((v) => !v)}
             title={terminal ? "Hide the terminal" : "Open a shell in this workspace"}
@@ -562,7 +579,7 @@ export function Chat({
       {/* Beside the conversation rather than above it: the page changing while
           the agent explains what it is doing is the thing worth seeing, and a
           strip across the top pushed the transcript out of view to show it. */}
-      {(watching || terminal) && (
+      {panes.length > 0 && (
         <>
           <div
             onPointerDown={dragWidth}
@@ -577,7 +594,7 @@ export function Chat({
             {watching && (
               <div
                 className="flex min-h-0 flex-col bg-black"
-                style={{ flex: terminal ? `${split} 1 0%` : "1 1 0%" }}
+                style={{ flex: paneFlex("browser") }}
               >
                 <div className="flex items-center gap-2 border-b border-line bg-surface px-3 py-1.5">
                   <span className="text-[11px] text-fg-subtle">Browser</span>
@@ -604,7 +621,21 @@ export function Chat({
               </div>
             )}
 
-            {watching && terminal && (
+            {watching && panes.length > 1 && (
+              <div
+                onPointerDown={dragSplit}
+                title="Drag to resize"
+                className="h-1 shrink-0 cursor-row-resize bg-line transition hover:bg-accent/40"
+              />
+            )}
+
+            {previewing && (
+              <div className="flex min-h-0 flex-col" style={{ flex: paneFlex("preview") }}>
+                <PreviewPanel key={session.id} sessionId={session.id} onClose={() => setPreviewing(false)} />
+              </div>
+            )}
+
+            {previewing && terminal && (
               <div
                 onPointerDown={dragSplit}
                 title="Drag to resize"
@@ -615,7 +646,7 @@ export function Chat({
             {terminal && (
               <div
                 className="flex min-h-0 flex-col"
-                style={{ flex: watching ? `${1 - split} 1 0%` : "1 1 0%" }}
+                style={{ flex: paneFlex("terminal") }}
               >
                 <div className="flex items-center gap-2 border-b border-line bg-surface px-3 py-1.5">
                   <span className="text-[11px] text-fg-subtle">Terminal</span>

@@ -1,0 +1,4 @@
+# Run inside Linux containers and hosts; CRLF from a Windows checkout breaks
+# bash ("set: pipefail\r: invalid option name") and systemd units.
+*.sh text eol=lf
+deploy/** text eol=lf

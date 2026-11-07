@@ -63,3 +63,29 @@ export function requireAuth(req: Request, res: Response, next: NextFunction): vo
 export function isAuthed(req: Request): boolean {
   return !authEnabled || verify(req.cookies?.[COOKIE]);
 }
+
+/** The login cookie's name, for listeners that must strip it before forwarding. */
+export const AUTH_COOKIE = COOKIE;
+
+/** Parse a raw Cookie header — for servers that are not the Express app. */
+export function parseCookies(header: string | undefined): Map<string, string> {
+  const out = new Map<string, string>();
+  for (const part of (header ?? "").split(";")) {
+    const i = part.indexOf("=");
+    if (i < 0) continue;
+    const name = part.slice(0, i).trim();
+    let value = part.slice(i + 1).trim();
+    try {
+      value = decodeURIComponent(value);
+    } catch {
+      // Left as sent; a malformed escape just fails verification.
+    }
+    if (name) out.set(name, value);
+  }
+  return out;
+}
+
+/** isAuthed for a raw Cookie header. */
+export function isAuthedHeader(header: string | undefined): boolean {
+  return !authEnabled || verify(parseCookies(header).get(COOKIE));
+}
