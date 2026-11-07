@@ -50,13 +50,19 @@ export async function playPcmStream(body: ReadableStream<Uint8Array>, audio: Aud
   await playAudioBuffer(buffer, audio, destination, signal, onStarted);
 }
 
-/** Start from a small PCM cushion while the producer continues generating. */
-export async function preparePcmSpeech(body: ReadableStream<Uint8Array>, audio: AudioContext, signal: AbortSignal) {
+/**
+ * Start from a small PCM cushion while the producer continues generating —
+ * but only while it outpaces playback. Slower than realtime (the GPU shared
+ * with a generating LLM) and every late chunk becomes a hole mid-word, so the
+ * phrase is buffered whole instead, as readPcmStream does: a pause between
+ * phrases rather than breaks inside them.
+ */
+export async function preparePcmSpeech(body: ReadableStream<Uint8Array>, audio: AudioContext, signal: AbortSignal, now = () => performance.now() / 1000) {
   const reader = body.getReader();
   const pending: AudioBuffer[] = [];
   const sources = new Set<AudioBufferSourceNode>();
   let destination: AudioNode | undefined, nextTime = 0, finished = false, carry: number | undefined;
-  let buffered = 0, started = false;
+  let buffered = 0, started = false, firstAt: number | undefined, firstDuration = 0;
   let ready!: () => void, rejectReady!: (error: unknown) => void;
   const initial = new Promise<void>((resolve, reject) => { ready = resolve; rejectReady = reject; });
   let finishPlay!: () => void, failPlay!: (error: unknown) => void;
@@ -94,7 +100,11 @@ export async function preparePcmSpeech(body: ReadableStream<Uint8Array>, audio: 
         const buffer = audio.createBuffer(1, count, 24000), samples = buffer.getChannelData(0), view = new DataView(bytes.buffer);
         for (let i = 0; i < count; i++) samples[i] = view.getInt16(i * 2, true) / 32768;
         pending.push(buffer); buffered += buffer.duration;
-        if (buffered >= 0.65) ready();
+        // Rate is measured from the first chunk, so the server's time to first
+        // audio does not count against it; finishing makes it ready regardless.
+        const at = now();
+        if (firstAt === undefined) { firstAt = at; firstDuration = buffer.duration; }
+        else if (buffered >= 0.65 && at - firstAt >= 0.4 && (buffered - firstDuration) / (at - firstAt) >= 1.1) ready();
         pump();
       }
       if (!buffered || carry !== undefined) throw new Error('Breeze returned incomplete PCM audio');
