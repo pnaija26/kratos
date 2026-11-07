@@ -1,17 +1,8 @@
-<p align="center">
-  <img src="assets/hero.png" alt="Kratos" width="620">
-</p>
 
 <p align="center">
   A web front end for the <a href="https://github.com/earendil-works/pi">pi coding agent</a>, built to be
   left alone.<br>
   <strong>Give it a task, close the browser, come back later and read what it did.</strong>
-</p>
-
-<p align="center">
-  <a href="https://thecodacus.github.io/pithagoras/">Documentation</a> ·
-  <a href="https://thecodacus.github.io/pithagoras/guide/deploying">Deploying</a> ·
-  <a href="https://thecodacus.github.io/pithagoras/channels/writing-a-channel">Write a channel</a>
 </p>
 
 ---
