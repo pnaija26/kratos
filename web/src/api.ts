@@ -441,6 +441,7 @@ export const api = {
 
   people: () => json<{ people: Person[] }>("/api/people"),
   browser: () => json<BrowserStatus>("/api/browser"),
+  preview: () => json<PreviewStatus>("/api/preview"),
   openTerminal: (sessionId?: string) =>
     json<{ id: string; cwd: string }>("/api/terminal", {
       method: "POST",
@@ -921,6 +922,15 @@ export interface AuditEntry {
   person_key: string | null;
   person_name: string | null;
   session_id: string | null;
+}
+
+/** Where previews are served from, and the dev servers found running. */
+export interface PreviewStatus {
+  /** The preview listener's port, or null when it is off or failed to start. */
+  port: number | null;
+  secure: boolean;
+  error: string | null;
+  servers: { port: number; status: number; title: string | null }[];
 }
 
 /** The agent's browser, and who may drive it. */
